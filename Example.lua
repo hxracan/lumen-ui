@@ -1,8 +1,8 @@
 local Lumen = loadstring(readfile("Lumen.lua"))()
 
 local Hub = Lumen:Taskbar({
-	Name = "Lumen Hub",
-	Description = "v2.0",
+	Name = "huracan very pro",
+	Description = "v 2million",
 	Icon = "layers",
 	Key = Enum.KeyCode.RightShift,
 	Blur = 12,
