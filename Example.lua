@@ -1,46 +1,180 @@
 local Lumen = loadstring(readfile("Lumen.lua"))()
 
-local window = Lumen:Window({
-	Title = "Hub",
-	Subtitle = "v1.0",
+local Hub = Lumen:Taskbar({
+	Name = "Lumen Hub",
+	Description = "v2.0",
 	Icon = "layers",
 	Key = Enum.KeyCode.RightShift,
+	Blur = 12,
+	Splash = true,
+	LoadedSound = "rbxassetid://6647897822",
+	NotifySound = "rbxassetid://9120371540",
 })
 
-window:Category("Main")
+local Main = Hub:Window({
+	Name = "Main",
+	Description = "Combat & Visuals",
+	Icon = "crosshair",
+	Size = UDim2.fromOffset(760, 500),
+})
 
-local combat = window:Tab({Name = "Combat", Icon = "crosshair"})
+Main:Category("Combat")
 
-local aim = combat:Section({Name = "Aimbot", Side = "Left"})
-aim:Toggle({Name = "Enabled", Flag = "aim", Callback = function(v) print(v) end})
-aim:Keybind({Name = "Hold key", Default = Enum.KeyCode.E, Flag = "aimKey", Callback = function() print("pressed") end})
-aim:Slider({Name = "Smoothing", Min = 0, Max = 1, Increment = 0.05, Default = 0.3, Flag = "smooth"})
-aim:Slider({Name = "FOV", Min = 10, Max = 360, Default = 90, Suffix = "°", Flag = "fov"})
-aim:Dropdown({Name = "Target", Values = {"Head", "Torso", "Closest"}, Default = "Head", Flag = "target"})
+local Combat = Main:Tab({Name = "Aimbot", Icon = "crosshair"})
 
-local misc = combat:Section({Name = "Extras", Side = "Right"})
-misc:Dropdown({Name = "Checks", Values = {"Team", "Wall", "Alive"}, Multi = true, Flag = "checks"})
-misc:Input({Name = "Whitelist", Placeholder = "username", Flag = "whitelist"})
-misc:Divider()
-misc:Label("Hold the keybind to lock on.")
-misc:Button({Name = "Test notification", Callback = function()
-	Lumen:Notify({Title = "Hub", Content = "Everything is working.", Duration = 4})
-end})
+local Aim = Combat:Section({Name = "Silent Aim", Icon = "target", Side = "Left"})
 
-local visuals = window:Tab({Name = "Visuals", Icon = "eye"})
-local esp = visuals:Section({Name = "ESP"})
-esp:Toggle({Name = "Boxes", Flag = "boxes"})
-esp:ColorPicker({Name = "Box color", Default = Color3.fromRGB(138, 108, 255), Flag = "boxColor"})
+local AimToggle = Aim:Toggle({
+	Name = "Silent Aim",
+	Description = "Redirects projectiles toward the closest target",
+	Default = true,
+	Flag = "SilentAim",
+	Tooltip = "Hold or toggle your keybind to lock onto players",
+	Callback = function(v)
+		print("Silent Aim:", v)
+	end,
+})
+AimToggle:Bind({Default = Enum.KeyCode.E, Mode = "Toggle", Flag = "SilentAimBind"})
+AimToggle:Color({Default = Color3.fromRGB(124, 92, 255), Flag = "SilentAimColor"})
 
-window:Category("Config")
+Aim:Slider({
+	Name = "Field of View",
+	Description = "Maximum radius around cursor",
+	Min = 10,
+	Max = 360,
+	Default = 140,
+	Suffix = "°",
+	Flag = "AimFOV",
+})
 
-local settings = window:Tab({Name = "Settings", Icon = "settings"})
-local ui = settings:Section({Name = "Interface"})
-ui:ColorPicker({Name = "Accent", Default = Lumen.Theme.Accent, Callback = function(c) Lumen:SetAccent(c) end})
-ui:Keybind({Name = "Menu key", Default = window.Key, OnChange = function(k) window.Key = k end})
+Aim:Slider({
+	Name = "Smoothing",
+	Min = 0,
+	Max = 1,
+	Increment = 0.05,
+	Default = 0.25,
+	Flag = "AimSmooth",
+})
 
-local cfg = settings:Section({Name = "Configs", Side = "Right"})
-local name = cfg:Input({Name = "Name", Default = "default"})
-cfg:Button({Name = "Save", Callback = function() Lumen:SaveConfig(name.Value) end})
-cfg:Button({Name = "Load", Callback = function() Lumen:LoadConfig(name.Value) end})
-cfg:Button({Name = "Unload", Callback = function() Lumen:Unload() end})
+Aim:Dropdown({
+	Name = "Hitbox",
+	Values = {"Head", "UpperTorso", "HumanoidRootPart", "Closest"},
+	Default = "Head",
+	Flag = "AimHitbox",
+})
+
+local Checks = Combat:Section({Name = "Checks & Trigger", Icon = "shield", Side = "Right"})
+
+Checks:Dropdown({
+	Name = "Validation",
+	Description = "Conditions required before locking",
+	Values = {"Team Check", "Wall Check", "Alive Check", "ForceField Check", "Friend Check"},
+	Default = {"Team Check", "Alive Check"},
+	Multi = true,
+	Flag = "AimChecks",
+})
+
+Checks:Input({
+	Name = "Target Priority",
+	Placeholder = "Username...",
+	Flag = "PriorityUser",
+})
+
+Checks:Divider()
+
+local SnapBtn = Checks:Button({
+	Name = "Snap to Target",
+	Icon = "zap",
+	Style = "Primary",
+	Callback = function()
+		Hub:Notify({
+			Title = "Locked On",
+			Content = "Snapped camera to nearest target.",
+			Type = "Success",
+			Duration = 3,
+		})
+	end,
+})
+SnapBtn:Bind({Default = Enum.KeyCode.R, Flag = "SnapBind"})
+
+Checks:Button({
+	Name = "Test Notifications",
+	Icon = "bell",
+	Callback = function()
+		Hub:Notify({Title = "Information", Content = "Target configuration updated.", Type = "Info", Duration = 3})
+		task.delay(0.25, function()
+			Hub:Notify({Title = "Warning", Content = "High smoothing detected.", Type = "Warning", Duration = 4})
+		end)
+		task.delay(0.5, function()
+			Hub:Notify({Title = "Danger", Content = "Anti-cheat check triggered.", Type = "Error", Duration = 5})
+		end)
+	end,
+})
+
+Main:Category("Visuals")
+
+local Visuals = Main:Tab({Name = "ESP", Icon = "eye"})
+
+local PlayerESP = Visuals:Section({Name = "Players", Icon = "user", Side = "Left"})
+
+local BoxESP = PlayerESP:Toggle({
+	Name = "Bounding Box",
+	Description = "2D corner box around players",
+	Default = true,
+	Flag = "ESPBox",
+})
+BoxESP:Color({Default = Color3.fromRGB(124, 92, 255), Flag = "ESPBoxColor"})
+
+local NameESP = PlayerESP:Toggle({
+	Name = "Display Names",
+	Default = true,
+	Flag = "ESPName",
+})
+NameESP:Color({Default = Color3.fromRGB(255, 255, 255), Flag = "ESPNameColor"})
+
+local Chams = PlayerESP:Toggle({
+	Name = "Highlight Chams",
+	Description = "Filled mesh highlight with transparency",
+	Flag = "ESPChams",
+})
+Chams:Color({Default = Color3.fromRGB(52, 211, 153), Alpha = 0.45, Flag = "ESPChamsColor"})
+
+PlayerESP:Slider({
+	Name = "Max Distance",
+	Min = 100,
+	Max = 5000,
+	Increment = 50,
+	Default = 1500,
+	Suffix = "m",
+	Flag = "ESPDistance",
+})
+
+local World = Visuals:Section({Name = "World", Icon = "globe", Side = "Right"})
+
+World:Paragraph({
+	Name = "Environment Modulation",
+	Content = "Override client lighting, fog, and post-processing effects in real time.",
+})
+
+local Ambient = World:Toggle({Name = "Custom Ambient", Flag = "WorldAmbient"})
+Ambient:Color({Default = Color3.fromRGB(90, 110, 255), Flag = "WorldAmbientColor"})
+
+World:Slider({
+	Name = "Time of Day",
+	Min = 0,
+	Max = 24,
+	Increment = 0.5,
+	Default = 14,
+	Suffix = "h",
+	Flag = "WorldClock",
+})
+
+local SettingsWin = Hub:Window({
+	Name = "Settings",
+	Description = "Themes & Configs",
+	Icon = "settings",
+	Size = UDim2.fromOffset(720, 470),
+	Open = false,
+})
+
+Hub:Settings(SettingsWin)
