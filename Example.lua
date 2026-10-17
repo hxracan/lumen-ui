@@ -1,8 +1,8 @@
-local Lumen = loadstring(readfile("Lumen.lua"))()
+local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan/lumen-ui/refs/heads/main/Lumen.lua"))()
 
 local Hub = Lumen.new({
-	Name = "LUMEN",
-	Sub = "v4.5  •  ELITE INTERFACE",
+	Name = "Jupiter",
+	Sub = "v 4 million",
 	Key = Enum.KeyCode.RightShift,
 	Theme = "Carbon",
 	Watermark = true,
