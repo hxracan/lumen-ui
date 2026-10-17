@@ -1,21 +1,21 @@
 local Lumen = loadstring(readfile("Lumen.lua"))()
 
 local Hub = Lumen:Taskbar({
-	Name = "huracan very pro",
-	Description = "v 2million",
+	Name = "Lumen Hub",
+	Description = "v3.0",
 	Icon = "layers",
 	Key = Enum.KeyCode.RightShift,
-	Blur = 12,
+	Blur = 14,
 	Splash = true,
 	LoadedSound = "rbxassetid://6647897822",
 	NotifySound = "rbxassetid://9120371540",
 })
 
 local Main = Hub:Window({
-	Name = "Main",
-	Description = "Combat & Visuals",
-	Icon = "crosshair",
-	Size = UDim2.fromOffset(760, 500),
+	Name = "Lumen",
+	Description = "Universal Suite",
+	Icon = "layers",
+	Size = UDim2.fromOffset(880, 580),
 })
 
 Main:Category("Combat")
@@ -49,6 +49,7 @@ Aim:Slider({
 
 Aim:Slider({
 	Name = "Smoothing",
+	Description = "Camera interpolation factor",
 	Min = 0,
 	Max = 1,
 	Increment = 0.05,
@@ -169,12 +170,4 @@ World:Slider({
 	Flag = "WorldClock",
 })
 
-local SettingsWin = Hub:Window({
-	Name = "Settings",
-	Description = "Themes & Configs",
-	Icon = "settings",
-	Size = UDim2.fromOffset(720, 470),
-	Open = false,
-})
-
-Hub:Settings(SettingsWin)
+Hub:Settings(Main)
