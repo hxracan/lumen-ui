@@ -20,9 +20,26 @@ local Lumen = {
 	Flags = {},
 	Options = {},
 	Toggles = {},
+	Labels = {},
+	Buttons = {},
+	Tabs = {},
+	DependencyBoxes = {},
 	Binds = {},
 	ThemeControls = {},
 	Windows = {},
+	UnloadSignals = {},
+	Registry = {},
+	IsMobile = isMobile,
+	Toggled = true,
+	Unloaded = false,
+	GlobalSearch = false,
+	NotifyOnError = false,
+	ShowCustomCursor = false,
+	ForceCheckbox = false,
+	CornerRadius = 12,
+	DPIScale = 1,
+	NotifySide = "Right",
+	ToggleKeybind = Enum.KeyCode.RightShift,
 	IgnoreFlags = {
 		UIThemePreset = true,
 		UICustomThemeList = true,
@@ -203,7 +220,22 @@ local PILL = UDim.new(1, 0)
 local WHITE = Color3.new(1, 1, 1)
 local BLACK = Color3.new(0, 0, 0)
 
+Lumen.Scheme = {
+	BackgroundColor = T.Back,
+	MainColor = T.Panel,
+	AccentColor = T.Accent,
+	OutlineColor = T.Stroke,
+	FontColor = T.Text,
+	Font = FONT,
+	RedColor = T.Danger,
+	DestructiveColor = T.Danger,
+	DarkColor = BLACK,
+	WhiteColor = WHITE,
+	BackgroundImage = "",
+}
+
 local connections = {}
+Lumen.Signals = connections
 local bindings = {}
 local hooks = {}
 local fontLabels = {}
@@ -282,6 +314,15 @@ function Lumen:GetContrastReport()
 end
 
 local function refreshTheme(syncControls)
+	if Lumen.Scheme then
+		Lumen.Scheme.BackgroundColor = T.Back
+		Lumen.Scheme.MainColor = T.Panel
+		Lumen.Scheme.AccentColor = T.Accent
+		Lumen.Scheme.OutlineColor = T.Stroke
+		Lumen.Scheme.FontColor = T.Text
+		Lumen.Scheme.RedColor = T.Danger
+		Lumen.Scheme.DestructiveColor = T.Danger
+	end
 	local alive = {}
 	for _, b in bindings do
 		if b[1].Parent then
@@ -290,6 +331,20 @@ local function refreshTheme(syncControls)
 		end
 	end
 	bindings = alive
+	for inst, props in Lumen.Registry do
+		if inst and inst.Parent then
+			for prop, schemeKey in props do
+				local val = type(schemeKey) == "function" and schemeKey() or (Lumen.Scheme[schemeKey] or T[schemeKey])
+				if val ~= nil then
+					pcall(function()
+						inst[prop] = val
+					end)
+				end
+			end
+		else
+			Lumen.Registry[inst] = nil
+		end
+	end
 	for _, fn in hooks do
 		fn(true)
 	end
@@ -330,14 +385,28 @@ function Lumen:SetAccent(color)
 end
 
 function Lumen:SetFont(name)
-	local family = Fonts[name] or name
+	local family
+	if typeof(name) == "Font" then
+		family = name.Family
+	elseif typeof(name) == "EnumItem" then
+		family = Fonts[name.Name] or ("rbxasset://fonts/families/" .. name.Name .. ".json")
+	elseif type(name) == "string" then
+		family = Fonts[name] or name
+	end
 	if type(family) ~= "string" then
 		return
 	end
-	Lumen.Config.FontFamily = name
-	FONT = Font.new(family, Enum.FontWeight.Medium)
+	Lumen.Config.FontFamily = tostring(name)
+	local ok, f1 = pcall(Font.new, family, Enum.FontWeight.Medium)
+	if not ok then
+		return
+	end
+	FONT = f1
 	FONT_B = Font.new(family, Enum.FontWeight.SemiBold)
 	FONT_X = Font.new(family, Enum.FontWeight.Bold)
+	if Lumen.Scheme then
+		Lumen.Scheme.Font = FONT
+	end
 	local alive = {}
 	for _, entry in fontLabels do
 		local obj, weight = entry[1], entry[2]
@@ -479,6 +548,8 @@ local function text(props)
 	local defaults = {
 		BackgroundTransparency = 1,
 		FontFace = FONT,
+		Text = "",
+		RichText = true,
 		TextSize = 13,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Center,
@@ -507,6 +578,9 @@ local function hit(parent)
 end
 
 local function center(obj)
+	if not obj then
+		return nil
+	end
 	obj.AnchorPoint = Vector2.new(0.5, 0.5)
 	obj.Position = UDim2.fromScale(0.5, 0.5)
 	return obj
@@ -528,10 +602,12 @@ local Core = {
 	search = "rbxassetid://10734943674",
 	check = "rbxassetid://10709790644",
 	["chevron-down"] = "rbxassetid://10709790948",
+	["chevron-up"] = "rbxassetid://10709791523",
 	["chevron-right"] = "rbxassetid://10709791437",
 	["chevron-left"] = "rbxassetid://10709791281",
 	x = "rbxassetid://10747384394",
 	minus = "rbxassetid://10734896206",
+	plus = "rbxassetid://10734924532",
 	settings = "rbxassetid://10734950309",
 	bell = "rbxassetid://10709775704",
 	["bell-off"] = "rbxassetid://10709775324",
@@ -541,6 +617,7 @@ local Core = {
 	shield = "rbxassetid://10734951847",
 	zap = "rbxassetid://10747384830",
 	eye = "rbxassetid://10723346959",
+	["eye-off"] = "rbxassetid://10723346871",
 	crosshair = "rbxassetid://10709818534",
 	target = "rbxassetid://10734977012",
 	sliders = "rbxassetid://10734963400",
@@ -548,7 +625,9 @@ local Core = {
 	folder = "rbxassetid://10723387563",
 	save = "rbxassetid://10734941499",
 	["trash-2"] = "rbxassetid://10747362393",
+	trash = "rbxassetid://10747362393",
 	["rotate-ccw"] = "rbxassetid://10734940376",
+	["refresh-cw"] = "rbxassetid://10734933222",
 	power = "rbxassetid://10734930466",
 	info = "rbxassetid://10723415903",
 	["triangle-alert"] = "rbxassetid://10709753149",
@@ -568,15 +647,32 @@ local Core = {
 	download = "rbxassetid://10723344270",
 	upload = "rbxassetid://10747366434",
 	lock = "rbxassetid://10723434711",
+	unlock = "rbxassetid://10747366027",
 	swords = "rbxassetid://10734975692",
 	compass = "rbxassetid://10709811445",
 	cpu = "rbxassetid://10709813383",
 	["panel-left"] = "rbxassetid://10734914327",
 	image = "rbxassetid://10723415040",
 	move = "rbxassetid://10734900011",
+	radar = "rbxassetid://10709811445",
+	activity = "rbxassetid://10709752035",
+	wind = "rbxassetid://10747382750",
+	sun = "rbxassetid://10734974297",
+	moon = "rbxassetid://10734897102",
+	radio = "rbxassetid://10734931596",
+	star = "rbxassetid://10734966248",
+	heart = "rbxassetid://10723406885",
+	wrench = "rbxassetid://10747383470",
+	code = "rbxassetid://10709810463",
+	clock = "rbxassetid://10709805144",
+	list = "rbxassetid://10723433811",
+	play = "rbxassetid://10734923549",
+	pause = "rbxassetid://10734919336",
+	["volume-2"] = "rbxassetid://10747376008",
 }
 
 local RemoteIcons = {}
+local pendingIcons = {}
 task.spawn(function()
 	local ok, raw = pcall(game.HttpGet, game, "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua")
 	if ok and type(raw) == "string" then
@@ -584,7 +680,16 @@ task.spawn(function()
 		if fn then
 			local fine, tbl = pcall(fn)
 			if fine and type(tbl) == "table" then
-				RemoteIcons = tbl
+				RemoteIcons = tbl.icons or tbl
+				for _, item in pendingIcons do
+					if item.Img and item.Img.Parent then
+						local found = RemoteIcons[item.Key] or RemoteIcons[item.Name]
+						if type(found) == "string" then
+							item.Img.Image = found
+						end
+					end
+				end
+				table.clear(pendingIcons)
 			end
 		end
 	end
@@ -597,21 +702,31 @@ local function resolveIcon(name)
 	if type(name) == "number" then
 		return "rbxassetid://" .. name
 	end
-	if name:find("^rbxassetid://") or name:find("^rbxthumb://") then
+	if type(name) ~= "string" then
+		return Core.layers
+	end
+	if name:find("://") then
 		return name
 	end
 	local k = name:lower()
-	return Core[k] or RemoteIcons[k] or RemoteIcons[name]
+	local found = Core[k] or RemoteIcons[k] or RemoteIcons[name]
+	if type(found) == "string" then
+		return found
+	end
+	return Core["layout-grid"], k
 end
 
 local function icon(parent, name, size, colorKey)
-	local id = resolveIcon(name)
+	if not name or name == "" then
+		return nil
+	end
+	local id, unresolvedKey = resolveIcon(name)
 	if not id then
 		return nil
 	end
 	local s = size or 16
 	local isKey = type(colorKey) == "string"
-	return create("ImageLabel", {
+	local img = create("ImageLabel", {
 		Parent = parent,
 		Size = UDim2.fromOffset(s, s),
 		BackgroundTransparency = 1,
@@ -620,6 +735,10 @@ local function icon(parent, name, size, colorKey)
 		ImageColor3 = not isKey and (colorKey or T.Text) or nil,
 		Theme = isKey and {ImageColor3 = colorKey} or nil,
 	})
+	if unresolvedKey then
+		table.insert(pendingIcons, {Img = img, Key = unresolvedKey, Name = name})
+	end
+	return img
 end
 
 local function play(id, volume)
@@ -652,6 +771,7 @@ local Gui = create("ScreenGui", {
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	DisplayOrder = 999,
 })
+Lumen.ScreenGui = Gui
 
 local Layers = {}
 for i, name in {"Windows", "Snap", "Dock", "Panels", "Popups", "Toasts", "Hud", "Tip", "Splash"} do
@@ -1064,13 +1184,14 @@ local function openMenu(anchor, opts)
 
 	local function refreshRows(animate)
 		for _, r in rows do
-			local on = opts.Selected(r.Value)
+			local disabled = opts.DisabledValues and (opts.DisabledValues[r.Value] == true or table.find(opts.DisabledValues, r.Value) ~= nil)
+			local on = not disabled and opts.Selected(r.Value)
 			apply(r.Label, {
 				Position = UDim2.fromOffset(on and 28 or 10, 0),
-				TextColor3 = on and T.Text or T.Muted,
+				TextColor3 = disabled and T.Stroke or (on and T.Text or T.Muted),
 			}, animate, 0.16, "Dropdown Menu")
 			apply(r.Check, {ImageTransparency = on and 0 or 1}, animate, 0.16, "Dropdown Menu")
-			apply(r.Button, {BackgroundTransparency = on and 0.88 or (r.Hover and 0.45 or 1)}, animate, 0.16, "Dropdown Menu")
+			apply(r.Button, {BackgroundTransparency = on and 0.88 or (r.Hover and not disabled and 0.45 or 1)}, animate, 0.16, "Dropdown Menu")
 			r.Button.BackgroundColor3 = on and T.Accent or T.Hover
 		end
 	end
@@ -1099,6 +1220,10 @@ local function openMenu(anchor, opts)
 		local row = {Value = v, Name = display:lower(), Button = btn, Check = chk, Label = lbl, Hover = false}
 		table.insert(rows, row)
 		btn.MouseEnter:Connect(function()
+			local disabled = opts.DisabledValues and (opts.DisabledValues[v] == true or table.find(opts.DisabledValues, v) ~= nil)
+			if disabled then
+				return
+			end
 			row.Hover = true
 			if not opts.Selected(v) then
 				apply(btn, {BackgroundColor3 = T.Hover, BackgroundTransparency = 0.45}, true, 0.14, "Hover Effects")
@@ -1107,12 +1232,17 @@ local function openMenu(anchor, opts)
 		end)
 		btn.MouseLeave:Connect(function()
 			row.Hover = false
-			if not opts.Selected(v) then
+			local disabled = opts.DisabledValues and (opts.DisabledValues[v] == true or table.find(opts.DisabledValues, v) ~= nil)
+			if not disabled and not opts.Selected(v) then
 				apply(btn, {BackgroundTransparency = 1}, true, 0.14, "Hover Effects")
 				apply(lbl, {TextColor3 = T.Muted}, true, 0.14, "Hover Effects")
 			end
 		end)
 		btn.Activated:Connect(function()
+			local disabled = opts.DisabledValues and (opts.DisabledValues[v] == true or table.find(opts.DisabledValues, v) ~= nil)
+			if disabled then
+				return
+			end
 			opts.OnPick(v)
 			refreshRows(true)
 			if not opts.Multi then
@@ -1166,7 +1296,7 @@ local KeyNames = {
 }
 
 local function keyName(k)
-	if not k then
+	if not k or k == "" or k == "None" or k == "Unknown" then
 		return "None"
 	end
 	local n = typeof(k) == "EnumItem" and k.Name or tostring(k)
@@ -1177,7 +1307,9 @@ local function parseKey(v)
 	if typeof(v) == "EnumItem" then
 		return v
 	elseif type(v) == "string" then
-		if v == "MB1" or v == "MouseButton1" then
+		if v == "" or v == "None" or v == "Unknown" then
+			return Enum.KeyCode.Unknown
+		elseif v == "MB1" or v == "MouseButton1" then
 			return Enum.UserInputType.MouseButton1
 		elseif v == "MB2" or v == "MouseButton2" then
 			return Enum.UserInputType.MouseButton2
@@ -1188,6 +1320,22 @@ local function parseKey(v)
 		end
 	end
 	return Enum.KeyCode.Unknown
+end
+
+local function keyString(k)
+	if not k or k == Enum.KeyCode.Unknown or k == "None" or k == "Unknown" or k == "" then
+		return "None"
+	end
+	if k == Enum.UserInputType.MouseButton1 or k == "MB1" or k == "MouseButton1" then
+		return "MB1"
+	elseif k == Enum.UserInputType.MouseButton2 or k == "MB2" or k == "MouseButton2" then
+		return "MB2"
+	elseif k == Enum.UserInputType.MouseButton3 or k == "MB3" or k == "MouseButton3" then
+		return "MB3"
+	elseif typeof(k) == "EnumItem" then
+		return k.Name
+	end
+	return tostring(k)
 end
 
 local function registerFlag(flag, obj, isToggle)
@@ -1201,14 +1349,20 @@ local function registerFlag(flag, obj, isToggle)
 end
 
 local function component(o, default, callback, isToggle)
+	local cb = callback or o.Func
 	local obj = {
 		Value = default,
 		Flag = o.Flag,
+		Text = o.Text or o.Name or "",
+		Func = cb,
 		Listeners = {},
 		ClickListeners = {},
 	}
-	if callback then
-		table.insert(obj.Listeners, callback)
+	if cb then
+		table.insert(obj.Listeners, cb)
+	end
+	if o.ChangedCallback then
+		table.insert(obj.Listeners, o.ChangedCallback)
 	end
 	function obj:OnChanged(fn)
 		table.insert(self.Listeners, fn)
@@ -1228,6 +1382,9 @@ local function component(o, default, callback, isToggle)
 			end
 		end
 	end
+	function obj:RunChanged()
+		self:Fire(false)
+	end
 	function obj:SetValue(v, silent, ...)
 		if self.Set then
 			self:Set(v, silent, ...)
@@ -1240,11 +1397,27 @@ end
 local UNKNOWN = Enum.KeyCode.Unknown
 
 local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
-	local default = o.Default ~= nil and parseKey(o.Default) or UNKNOWN
-	local kb = component(o, default)
+	local isObsidian = o.ObsidianMode == true
+	local rawDefault = o.Default ~= nil and parseKey(o.Default) or UNKNOWN
+	local initVal = isObsidian and keyString(rawDefault) or rawDefault
+	local kb = component(o, initVal)
+	kb.Type = "KeyPicker"
+	kb.EnumValue = rawDefault
 	kb.Mode = o.Mode or "Toggle"
 	kb.State = kb.Mode == "Always"
+	kb.Toggled = kb.State
+	kb.Modifiers = type(o.DefaultModifiers) == "table" and table.clone(o.DefaultModifiers) or {}
+	kb.Text = o.Text or labelText or o.Name or ""
+	kb.MenuVisible = o.NoUI ~= true
+	kb.SyncToggleState = o.SyncToggleState == true
 	kb.Listening = false
+	if o.Callback and isObsidian then
+		kb.Listeners = {}
+		if o.ChangedCallback then
+			table.insert(kb.Listeners, o.ChangedCallback)
+		end
+		table.insert(kb.ClickListeners, o.Callback)
+	end
 	local ring = stroke("Stroke")
 	local chip = registerFont(create("TextButton", {
 		Parent = parent,
@@ -1256,6 +1429,7 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 		TextSize = 11,
 		Theme = {BackgroundColor3 = "Raised", TextColor3 = "Muted"},
 	}, {corner(6), ring, pad(0, 8)}), "B")
+	kb.DisplayFrame = chip
 
 	local function refresh()
 		if kb.Listening then
@@ -1263,25 +1437,52 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 			chip.TextColor3 = T.Accent
 			ring.Color = T.Accent
 		else
-			chip.Text = kb.Mode == "Always" and "Always" or keyName(kb.Value)
+			chip.Text = kb.Mode == "Always" and "Always" or keyName(kb.EnumValue)
 			chip.TextColor3 = T.Muted
 			ring.Color = T.Stroke
 		end
 	end
 	onTheme(refresh)
 
+	function kb:Update()
+		refresh()
+	end
+
+	function kb:SetMenuVisibility(vis)
+		self.MenuVisible = vis == true
+	end
+
+	function kb:DoClick()
+		for _, fn in self.ClickListeners do
+			task.spawn(fn, self.Toggled)
+		end
+		if self.SyncToggleState and toggleTarget and toggleTarget.Set then
+			toggleTarget:Set(self.Toggled)
+		elseif trigger then
+			trigger(true, self.Mode, self.State)
+		end
+	end
+
 	function kb:Set(k, silent, newMode)
+		local mods
 		if type(k) == "table" then
 			newMode = k[2] or newMode
+			mods = k[3]
 			k = k[1]
+		end
+		if type(mods) == "table" then
+			self.Modifiers = table.clone(mods)
 		end
 		if newMode then
 			self.Mode = newMode
 			if newMode == "Always" then
 				self.State = true
+				self.Toggled = true
 			end
 		end
-		self.Value = k ~= nil and parseKey(k) or UNKNOWN
+		local parsed = k ~= nil and parseKey(k) or UNKNOWN
+		self.EnumValue = parsed
+		self.Value = isObsidian and keyString(parsed) or parsed
 		self.Listening = false
 		Lumen.Listening = false
 		refresh()
@@ -1292,10 +1493,29 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 		if self.Mode == "Always" then
 			return true
 		end
-		if activeFn then
+		if self.EnumValue == UNKNOWN then
+			return false
+		end
+		if self.Mode == "Hold" or self.Mode == "Press" then
+			if self.EnumValue == Enum.UserInputType.MouseButton1 or self.EnumValue == Enum.UserInputType.MouseButton2 or self.EnumValue == Enum.UserInputType.MouseButton3 then
+				return UIS:IsMouseButtonPressed(self.EnumValue)
+			elseif typeof(self.EnumValue) == "EnumItem" and self.EnumValue.EnumType == Enum.KeyCode then
+				return UIS:IsKeyDown(self.EnumValue)
+			end
+		end
+		if activeFn and not isObsidian then
 			return activeFn()
 		end
-		return self.State
+		return self.Toggled or self.State
+	end
+
+	if toggleTarget and toggleTarget.OnChanged then
+		toggleTarget:OnChanged(function(val)
+			if kb.SyncToggleState then
+				kb.State = val == true
+				kb.Toggled = kb.State
+			end
+		end)
 	end
 
 	local function showModeMenu()
@@ -1306,7 +1526,7 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 		Lumen.Listening = false
 		refresh()
 		openMenu(chip, {
-			Values = {"Toggle", "Hold", "Always", "Press"},
+			Values = type(o.Modes) == "table" and o.Modes or {"Toggle", "Hold", "Always", "Press"},
 			Width = 108,
 			Right = true,
 			Search = false,
@@ -1317,6 +1537,7 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 				kb.Mode = m
 				if m == "Always" then
 					kb.State = true
+					kb.Toggled = true
 					if trigger then
 						trigger(true, "Always", true)
 					end
@@ -1368,59 +1589,66 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 				local k = input.KeyCode
 				Lumen.LastBind = tick()
 				kb:Set((k == Enum.KeyCode.Escape or k == Enum.KeyCode.Backspace) and UNKNOWN or k)
-			elseif t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.MouseButton3 then
-				Lumen.LastBind = tick()
-				kb:Set(t)
+			elseif t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.MouseButton2 or t == Enum.UserInputType.MouseButton3 then
+				if not inside(chip, mouse(input)) then
+					Lumen.LastBind = tick()
+					kb:Set(t)
+				end
 			end
 			return
 		end
-		if processed or kb.Value == UNKNOWN or kb.Mode == "Always" then
+		if processed or kb.EnumValue == UNKNOWN or kb.Mode == "Always" then
 			return
 		end
-		if input.KeyCode == kb.Value or input.UserInputType == kb.Value then
+		if input.KeyCode == kb.EnumValue or input.UserInputType == kb.EnumValue then
 			if kb.Mode == "Hold" or kb.Mode == "Press" then
 				kb.State = true
+				kb.Toggled = true
 			else
 				kb.State = not kb.State
+				kb.Toggled = kb.State
 			end
-			for _, fn in kb.ClickListeners do
-				task.spawn(fn, kb.State)
-			end
-			if trigger then
-				trigger(true, kb.Mode, kb.State)
-			end
+			kb:DoClick()
 		end
 	end)
 
 	link(UIS.InputEnded, function(input)
-		if kb.Value ~= UNKNOWN and (input.KeyCode == kb.Value or input.UserInputType == kb.Value) then
+		if kb.EnumValue ~= UNKNOWN and (input.KeyCode == kb.EnumValue or input.UserInputType == kb.EnumValue) then
 			if kb.Mode == "Hold" or kb.Mode == "Press" then
 				kb.State = false
-				if kb.Mode == "Hold" and trigger then
-					trigger(false, kb.Mode, false)
+				kb.Toggled = false
+				if kb.Mode == "Hold" then
+					if kb.SyncToggleState and toggleTarget and toggleTarget.Set then
+						toggleTarget:Set(false)
+					elseif trigger then
+						trigger(false, kb.Mode, false)
+					end
 				end
 			end
 		end
 	end)
 
-	if labelText and not o.NoUI then
+	local entryLabel = kb.Text ~= "" and kb.Text or labelText
+	if entryLabel and entryLabel ~= "" then
 		table.insert(Lumen.Binds, {
-			Name = labelText,
+			Name = entryLabel,
 			Bind = kb,
 			Active = function()
+				if not kb.MenuVisible then
+					return false
+				end
 				if kb.Mode == "Always" then
 					return true
 				end
-				return activeFn and activeFn() or kb.State
+				return activeFn and activeFn() or kb.Toggled or kb.State
 			end,
 			Toggle = function()
 				if toggleTarget and toggleTarget.Set then
 					toggleTarget:Set(not toggleTarget.Value)
 				elseif kb.Mode == "Toggle" then
 					kb.State = not kb.State
-					if trigger then
-						trigger(true, "Toggle", kb.State)
-					end
+					kb.Toggled = kb.State
+					kb:DoClick()
 				end
 			end,
 		})
@@ -1446,6 +1674,8 @@ local function makeColor(parent, o)
 	local h, s, v = default:ToHSV()
 	local alpha = o.Alpha or o.Transparency or 0
 	local cp = component(o, default, o.Callback)
+	cp.Type = "ColorPicker"
+	cp.Title = o.Title or o.Text or o.Name or ""
 	cp.Alpha = alpha
 	cp.Transparency = alpha
 
@@ -1457,6 +1687,7 @@ local function makeColor(parent, o)
 		AutoButtonColor = false,
 		Text = "",
 	}, {corner(6), stroke("Stroke")})
+	cp.DisplayFrame = swatch
 
 	local syncPopover
 
@@ -1471,12 +1702,21 @@ local function makeColor(parent, o)
 		cp:Fire(silent, alpha)
 	end
 
+	function cp:Update()
+		swatch.BackgroundColor3 = self.Value
+		if syncPopover then
+			syncPopover()
+		end
+	end
+
 	function cp:Set(color, silent, newAlpha)
 		if typeof(color) == "Color3" then
 			h, s, v = color:ToHSV()
 		end
 		if newAlpha ~= nil then
 			alpha = math.clamp(newAlpha, 0, 1)
+		elseif self.Transparency ~= alpha then
+			alpha = math.clamp(tonumber(self.Transparency) or 0, 0, 1)
 		end
 		commit(silent)
 	end
@@ -1756,9 +1996,18 @@ end
 local Elements = {}
 local ElementMeta = {__index = Elements}
 
-local function attachCommon(obj, row, title, desc, o)
+local function attachCommon(obj, row, title, desc, o, section)
 	obj.Row = row
+	obj.Holder = row
+	obj.TextLabel = obj.TextLabel or title
+	obj.Text = o.Text or o.Name or ""
+	obj.Visible = row.Visible
+	obj.Destroyed = false
 	obj.Disabled = o.Disabled == true
+	obj.FavoriteInfo = type(o) == "table" and table.clone(o) or {Text = obj.Text}
+	if section and section.Elements then
+		table.insert(section.Elements, obj)
+	end
 	local overlay
 	local function updateDisabled()
 		if obj.Disabled then
@@ -1789,12 +2038,27 @@ local function attachCommon(obj, row, title, desc, o)
 	end
 
 	function obj:SetVisible(state)
-		row.Visible = state ~= false
+		self.Visible = state ~= false
+		row.Visible = self.Visible
+	end
+
+	function obj:Destroy()
+		if self.Destroyed then
+			return
+		end
+		self.Destroyed = true
+		self.Visible = false
+		if row and row.Parent then
+			row:Destroy()
+		end
 	end
 
 	function obj:SetText(newTitle, newDesc)
-		if title and newTitle then
-			title.Text = newTitle
+		if newTitle ~= nil then
+			self.Text = tostring(newTitle)
+			if title then
+				title.Text = self.Text
+			end
 		end
 		if desc and newDesc then
 			desc.Text = newDesc
@@ -1810,11 +2074,11 @@ local function attachCommon(obj, row, title, desc, o)
 			if type(expected) == "function" then
 				match = expected(val)
 			elseif type(val) == "table" then
-				match = table.find(val, expected) ~= nil
+				match = val[expected] == true or table.find(val, expected) ~= nil
 			else
 				match = val == expected
 			end
-			row.Visible = match
+			self:SetVisible(match)
 		end
 		check(source.Value)
 		source:OnChanged(check)
@@ -1827,6 +2091,8 @@ local function attachCommon(obj, row, title, desc, o)
 		bOpts.Order = 20 + self._bindCount
 		local kb = makeBind(self._right, bOpts, self._fire, self._label, self._active, self)
 		self.BindObject = kb
+		self.Addons = self.Addons or {}
+		table.insert(self.Addons, kb)
 		return kb, self
 	end
 	obj.Keybind = obj.Bind
@@ -1837,28 +2103,33 @@ local function attachCommon(obj, row, title, desc, o)
 		cOpts.Order = 5 + self._colorCount
 		local cp = makeColor(self._right, cOpts)
 		self.ColorPicker = cp
+		self.Addons = self.Addons or {}
+		table.insert(self.Addons, cp)
 		return cp, self
 	end
 	obj.ColorPickerMethod = obj.Color
 
 	obj.AddKeyPicker = function(self, flag, bOpts)
 		if type(flag) == "table" then
-			bOpts = flag
+			bOpts = table.clone(flag)
 		else
-			bOpts = bOpts or {}
+			bOpts = type(bOpts) == "table" and table.clone(bOpts) or {}
 			bOpts.Flag = bOpts.Flag or flag
 		end
-		return self:Bind(bOpts)
+		bOpts.ObsidianMode = true
+		self:Bind(bOpts)
+		return self
 	end
 
 	obj.AddColorPicker = function(self, flag, cOpts)
 		if type(flag) == "table" then
-			cOpts = flag
+			cOpts = table.clone(flag)
 		else
-			cOpts = cOpts or {}
+			cOpts = type(cOpts) == "table" and table.clone(cOpts) or {}
 			cOpts.Flag = cOpts.Flag or flag
 		end
-		return self:Color(cOpts)
+		self:Color(cOpts)
+		return self
 	end
 end
 
@@ -1988,21 +2259,60 @@ function Elements:Divider(labelText)
 		})
 	end
 	table.insert(self.Items, {Row = row, Name = false})
+	local divObj = {
+		Type = "Divider",
+		Row = row,
+		Holder = row,
+		Visible = true,
+		Destroyed = false,
+		SetVisible = function(s, v)
+			s.Visible = v ~= false
+			row.Visible = s.Visible
+		end,
+		Destroy = function(s)
+			s.Destroyed = true
+			if row.Parent then
+				row:Destroy()
+			end
+		end,
+	}
+	if self.Elements then
+		table.insert(self.Elements, divObj)
+	end
+	return divObj
 end
 
-function Elements:Label(o)
-	o = type(o) == "string" and {Name = o} or (o or {})
+function Elements:Label(o, doesWrap, idx)
+	if type(o) == "string" then
+		o = {Name = o, Text = o, DoesWrap = doesWrap == true, Flag = idx}
+	else
+		o = o or {}
+		if doesWrap ~= nil and o.DoesWrap == nil then
+			o.DoesWrap = doesWrap == true
+		end
+		if idx and not o.Flag then
+			o.Flag = idx
+		end
+	end
 	o.Hover = false
 	local row, title, right, desc = build(self, o, o.DoesWrap and 46 or 30)
 	if o.DoesWrap then
 		title.TextWrapped = true
 		title.TextTruncate = Enum.TextTruncate.None
+		row.AutomaticSize = Enum.AutomaticSize.Y
+		title.AutomaticSize = Enum.AutomaticSize.Y
+		title.Size = UDim2.new(1, -20, 0, 18)
 	end
 	local obj = component(o, o.Name or o.Text)
+	obj.Type = "Label"
+	obj.DoesWrap = o.DoesWrap == true
 	obj._right = right
 	obj._label = o.Name or o.Text
-	attachCommon(obj, row, title, desc, o)
 	obj.TextLabel = title
+	attachCommon(obj, row, title, desc, o, self)
+	if o.Flag then
+		Lumen.Labels[o.Flag] = obj
+	end
 	return obj
 end
 
@@ -2039,7 +2349,9 @@ function Elements:Paragraph(o)
 	})
 	table.insert(self.Items, {Row = row, Name = ((o.Name or "") .. " " .. (o.Content or "")):lower()})
 	return {
+		Type = "Paragraph",
 		Row = row,
+		Holder = row,
 		SetTitle = function(_, v)
 			head.Text = v
 		end,
@@ -2103,6 +2415,7 @@ function Elements:Banner(o)
 	table.insert(self.Items, {Row = row, Name = ((o.Title or "") .. " " .. (o.Content or "")):lower()})
 	return {
 		Row = row,
+		Holder = row,
 		SetTitle = function(_, v)
 			head.Text = v
 		end,
@@ -2205,8 +2518,19 @@ local function makeSingleButton(holder, o)
 		label.Text = name
 		tween(label, {TextColor3 = primary and WHITE or (danger and T.Danger or T.Text)}, 0.15)
 	end
-	local cb = o.Callback or o.Func
+	local obj = component(o, nil)
+	obj.Type = "Button"
+	obj.Base = b
+	obj.Button = b
+	obj.TextLabel = label
+	obj._right = right
+	obj._label = name
+	obj._modes = false
+
 	local function trigger()
+		if obj.Disabled then
+			return
+		end
 		if (o.DoubleTap or o.DoubleClick) and not armed then
 			armed = true
 			label.Text = "Confirm?"
@@ -2223,6 +2547,7 @@ local function makeSingleButton(holder, o)
 			armed = false
 			restore()
 		end
+		local cb = obj.Func or o.Callback or o.Func
 		if cb then
 			task.spawn(cb)
 		end
@@ -2235,28 +2560,43 @@ local function makeSingleButton(holder, o)
 		tooltip(b, o.Tooltip)
 	end
 
-	local obj = component(o, nil)
-	obj.Button = b
-	obj._right = right
-	obj._label = name
-	obj._modes = false
 	obj._fire = function(down)
 		if down then
 			trigger()
 		end
 	end
 	function obj:SetText(v)
-		name = v
-		label.Text = v
+		name = tostring(v or "")
+		self.Text = name
+		label.Text = name
+	end
+	function obj:SetIcon(iconName)
+		if ico then
+			ico:Destroy()
+			ico = nil
+		end
+		if iconName and iconName ~= "" then
+			ico = icon(contentBox, iconName, 14, primary and WHITE or (danger and "Danger" or "Text"))
+			if ico then
+				ico.LayoutOrder = 1
+			end
+		end
+	end
+	if o.Idx or o.Flag then
+		Lumen.Buttons[o.Idx or o.Flag] = obj
 	end
 	return obj
 end
 
 function Elements:Button(o, fn)
 	if type(o) == "string" then
-		o = {Name = o, Callback = fn}
+		o = {Name = o, Text = o, Callback = fn, Func = fn}
 	else
 		o = o or {}
+		if fn and not o.Callback and not o.Func then
+			o.Callback = fn
+			o.Func = fn
+		end
 	end
 	self.Order += 1
 	local row = create("Frame", {
@@ -2284,18 +2624,28 @@ function Elements:Button(o, fn)
 	end
 
 	local mainObj = makeSingleButton(container, o)
+	mainObj.SubButtons = buttons
 	table.insert(buttons, mainObj)
 	relayout()
-	attachCommon(mainObj, row, nil, nil, o)
+	attachCommon(mainObj, row, mainObj.TextLabel, nil, o, self)
 	table.insert(self.Items, {Row = row, Name = (o.Name or o.Text or "button"):lower()})
 
 	function mainObj:SubButton(subOpts, subFn)
 		if type(subOpts) == "string" then
-			subOpts = {Name = subOpts, Callback = subFn}
+			subOpts = {Name = subOpts, Text = subOpts, Callback = subFn, Func = subFn}
 		else
 			subOpts = subOpts or {}
+			if subFn and not subOpts.Callback and not subOpts.Func then
+				subOpts.Callback = subFn
+				subOpts.Func = subFn
+			end
 		end
 		local subObj = makeSingleButton(container, subOpts)
+		subObj.Row = row
+		subObj.Holder = row
+		subObj.SetDisabled = function(s, st)
+			s.Disabled = st == true
+		end
 		table.insert(buttons, subObj)
 		relayout()
 		return subObj
@@ -2316,6 +2666,7 @@ end
 function Elements:Toggle(o)
 	o = o or {}
 	local obj = component(o, o.Default == true, o.Callback, true)
+	obj.Type = "Toggle"
 	local row, title, right, desc = build(self, o)
 	local click = hit(row)
 	click.ZIndex = 1
@@ -2341,7 +2692,7 @@ function Elements:Toggle(o)
 	local trackCorner = track:FindFirstChildOfClass("UICorner")
 
 	local function isCheckStyle()
-		return forceCheck or Lumen.Config.ToggleStyle == "Checkbox"
+		return forceCheck or Lumen.ForceCheckbox or Lumen.Config.ToggleStyle == "Checkbox"
 	end
 
 	local function place_(on, w)
@@ -2420,7 +2771,7 @@ function Elements:Toggle(o)
 			obj:Set(not obj.Value)
 		end
 	end
-	attachCommon(obj, row, title, desc, o)
+	attachCommon(obj, row, title, desc, o, self)
 	return obj
 end
 
@@ -2437,6 +2788,8 @@ function Elements:Slider(o)
 	local fmt = "%." .. dec .. "f"
 	local prefix, suffix = o.Prefix or "", o.Suffix or ""
 	local obj = component(o, math.clamp(o.Default or min, min, max), o.Callback)
+	obj.Type = "Slider"
+	obj.Min, obj.Max, obj.Rounding = min, max, dec
 	local hasDesc = o.Description ~= nil and o.Description ~= ""
 	local totalH = hasDesc and 66 or 52
 	local trackY = hasDesc and 48 or 34
@@ -2489,8 +2842,9 @@ function Elements:Slider(o)
 
 	local dragging, hovering = false, false
 	local function display()
-		if o.Format then
-			return o.Format(obj.Value)
+		local fn = o.FormatDisplayValue or o.Format
+		if fn then
+			return tostring(fn(obj.Value))
 		end
 		return prefix .. string.format(fmt, obj.Value) .. suffix
 	end
@@ -2524,10 +2878,12 @@ function Elements:Slider(o)
 	end
 	function obj:SetMin(newMin)
 		min = newMin
+		self.Min = newMin
 		set(self.Value, true)
 	end
 	function obj:SetMax(newMax)
 		max = newMax
+		self.Max = newMax
 		set(self.Value, true)
 	end
 	function obj:SetPrefix(p)
@@ -2591,7 +2947,7 @@ function Elements:Slider(o)
 		render(true)
 	end)
 
-	attachCommon(obj, row, title, desc, o)
+	attachCommon(obj, row, title, desc, o, self)
 	render(true)
 	return obj
 end
@@ -2599,13 +2955,93 @@ end
 function Elements:Dropdown(o)
 	o = o or {}
 	local multi = o.Multi == true
+	local dictMode = o.DictMulti == true
 	local allowNull = o.AllowNull == true
-	local values = o.Values or o.Items or {}
-	local default = o.Default
-	if multi then
-		default = type(default) == "table" and table.clone(default) or {}
+	local specialType = o.SpecialType
+	local excludeLocal = o.ExcludeLocalPlayer == true
+	local values = type(o.Values or o.Items) == "table" and table.clone(o.Values or o.Items) or {}
+
+	local function buildSpecialValues()
+		if specialType == "Player" then
+			local list_ = {}
+			local lp = Players.LocalPlayer
+			for _, p in Players:GetPlayers() do
+				if not (excludeLocal and p == lp) then
+					table.insert(list_, p)
+				end
+			end
+			values = list_
+		elseif specialType == "Team" then
+			local Teams = game:GetService("Teams")
+			values = Teams:GetTeams()
+		end
 	end
+	if specialType then
+		buildSpecialValues()
+	end
+
+	local function normalizeMulti(val)
+		if not multi then
+			if type(val) == "number" and values[val] ~= nil and not table.find(values, val) then
+				return values[val]
+			end
+			return val
+		end
+		if dictMode then
+			local out = {}
+			if type(val) == "table" then
+				local isArr = #val > 0
+				if isArr then
+					for _, item in val do
+						local resolved = (type(item) == "number" and values[item] ~= nil and not table.find(values, item)) and values[item] or item
+						if resolved ~= nil then
+							out[resolved] = true
+						end
+					end
+				else
+					for k, v in val do
+						if v then
+							out[k] = true
+						end
+					end
+				end
+			elseif val ~= nil and val ~= "" then
+				local resolved = (type(val) == "number" and values[val] ~= nil and not table.find(values, val)) and values[val] or val
+				if resolved ~= nil then
+					out[resolved] = true
+				end
+			end
+			return out
+		else
+			local out = {}
+			if type(val) == "table" then
+				if #val > 0 then
+					for _, item in val do
+						table.insert(out, item)
+					end
+				else
+					for k, v in val do
+						if v then
+							table.insert(out, k)
+						end
+					end
+				end
+			elseif val ~= nil then
+				table.insert(out, val)
+			end
+			return out
+		end
+	end
+
+	local default = normalizeMulti(o.Default)
 	local obj = component(o, default, o.Callback)
+	obj.Type = "Dropdown"
+	obj.Multi = multi
+	obj.SpecialType = specialType
+	obj.ExcludeLocalPlayer = excludeLocal
+	obj.Values = values
+	obj.DisabledValues = type(o.DisabledValues) == "table" and table.clone(o.DisabledValues) or {}
+
 	local row, title, right, desc = build(self, o)
 	local ring = stroke("Stroke")
 	local field = create("TextButton", {
@@ -2621,58 +3057,97 @@ function Elements:Dropdown(o)
 	chevron.AnchorPoint = Vector2.new(0.5, 0.5)
 	chevron.Position = UDim2.new(1, -14, 0.5, 0)
 
-	local function fmtVal(v)
-		if o.Format then
-			return o.Format(v)
+	local function fmtItem(v)
+		local fn = o.FormatListValue or o.FormatDisplayValue or o.Format
+		if fn then
+			local ok, res = pcall(fn, v)
+			if ok and res ~= nil then
+				return tostring(res)
+			end
+		end
+		if typeof(v) == "Instance" then
+			if v:IsA("Player") and v.DisplayName and v.DisplayName ~= v.Name then
+				return string.format("%s (@%s)", v.DisplayName, v.Name)
+			end
+			return v.Name
 		end
 		return tostring(v)
 	end
 
+	local function selectedList()
+		if not multi then
+			return obj.Value ~= nil and {obj.Value} or {}
+		end
+		if dictMode then
+			local arr = {}
+			for _, item in values do
+				if obj.Value[item] then
+					table.insert(arr, item)
+				end
+			end
+			for k, v in obj.Value do
+				if v and not table.find(arr, k) then
+					table.insert(arr, k)
+				end
+			end
+			return arr
+		end
+		return obj.Value
+	end
+
 	local function selected(name)
 		if multi then
+			if dictMode then
+				return obj.Value[name] == true
+			end
 			return table.find(obj.Value, name) ~= nil
 		end
 		return obj.Value == name
 	end
 
 	local function render()
-		local empty = multi and #obj.Value == 0 or (not multi and (obj.Value == nil or obj.Value == ""))
+		local sel = selectedList()
+		local empty = (multi and #sel == 0) or (not multi and (obj.Value == nil or obj.Value == ""))
 		if empty then
-			shown.Text = o.Placeholder or "None"
+			shown.Text = o.NullText or o.Placeholder or "---"
+		elseif o.FormatDisplayValue then
+			local ok, custom = pcall(o.FormatDisplayValue, multi and sel or obj.Value)
+			shown.Text = (ok and custom ~= nil and tostring(custom) ~= "") and tostring(custom) or fmtItem(sel[1])
 		elseif multi then
-			local n = #obj.Value
+			local n = #sel
 			if n <= 2 then
 				local parts = {}
-				for _, item in obj.Value do
-					table.insert(parts, fmtVal(item))
+				for _, item in sel do
+					table.insert(parts, fmtItem(item))
 				end
 				shown.Text = table.concat(parts, ", ")
 			else
-				shown.Text = fmtVal(obj.Value[1]) .. " +" .. (n - 1)
+				shown.Text = fmtItem(sel[1]) .. " +" .. (n - 1)
 			end
 		else
-			shown.Text = fmtVal(obj.Value)
+			shown.Text = fmtItem(obj.Value)
 		end
 		shown.TextColor3 = empty and T.Muted or T.Text
 	end
 	onTheme(render)
 
 	function obj:Set(v, silent)
-		if multi then
-			self.Value = type(v) == "table" and table.clone(v) or {}
-		else
-			self.Value = v
-		end
+		self.Value = normalizeMulti(v)
 		render()
 		self:Fire(silent)
 	end
 
 	function obj:Refresh()
+		if specialType then
+			buildSpecialValues()
+			self.Values = values
+		end
 		render()
 	end
 
 	function obj:SetValues(new)
-		values = new or {}
+		values = type(new) == "table" and table.clone(new) or {}
+		self.Values = values
 		closePopup()
 		if not multi and self.Value ~= nil and not table.find(values, self.Value) then
 			self:Set(nil, true)
@@ -2691,6 +3166,33 @@ function Elements:Dropdown(o)
 		elseif extra ~= nil and not table.find(values, extra) then
 			table.insert(values, extra)
 		end
+		self.Values = values
+		render()
+	end
+
+	function obj:SetDisabledValues(tbl)
+		self.DisabledValues = type(tbl) == "table" and table.clone(tbl) or {}
+		render()
+	end
+
+	if specialType == "Player" then
+		link(Players.PlayerAdded, function()
+			buildSpecialValues()
+			obj.Values = values
+			render()
+		end)
+		link(Players.PlayerRemoving, function(plr)
+			buildSpecialValues()
+			obj.Values = values
+			if multi and dictMode and obj.Value[plr] then
+				obj.Value[plr] = nil
+				obj:Fire()
+			elseif not multi and obj.Value == plr then
+				obj.Value = nil
+				obj:Fire()
+			end
+			render()
+		end)
 	end
 
 	field.MouseEnter:Connect(function()
@@ -2711,14 +3213,19 @@ function Elements:Dropdown(o)
 			closePopup()
 			return
 		end
+		if specialType then
+			buildSpecialValues()
+			obj.Values = values
+		end
 		tween(chevron, {Rotation = 180}, 0.22, nil, nil, "Dropdown Menu")
 		tween(ring, {Color = T.Accent}, 0.18, nil, nil, "Dropdown Menu")
 		openMenu(field, {
 			Values = values,
+			DisabledValues = obj.DisabledValues,
 			Multi = multi,
-			Search = o.Search,
-			Format = o.Format,
-			Width = field.AbsoluteSize.X,
+			Search = o.Searchable ~= nil and o.Searchable or o.Search,
+			Format = fmtItem,
+			Width = math.max(field.AbsoluteSize.X, 176),
 			Right = true,
 			OnClose = function()
 				tween(chevron, {Rotation = 0}, 0.22, nil, nil, "Dropdown Menu")
@@ -2727,11 +3234,19 @@ function Elements:Dropdown(o)
 			Selected = selected,
 			OnPick = function(name)
 				if multi then
-					local i = table.find(obj.Value, name)
-					if i then
-						table.remove(obj.Value, i)
+					if dictMode then
+						if obj.Value[name] then
+							obj.Value[name] = nil
+						else
+							obj.Value[name] = true
+						end
 					else
-						table.insert(obj.Value, name)
+						local i = table.find(obj.Value, name)
+						if i then
+							table.remove(obj.Value, i)
+						else
+							table.insert(obj.Value, name)
+						end
 					end
 					render()
 					obj:Fire()
@@ -2744,7 +3259,7 @@ function Elements:Dropdown(o)
 		})
 	end)
 
-	attachCommon(obj, row, title, desc, o)
+	attachCommon(obj, row, title, desc, o, self)
 	render()
 	return obj
 end
@@ -2752,6 +3267,7 @@ end
 function Elements:Input(o)
 	o = o or {}
 	local obj = component(o, o.Default or "", o.Callback)
+	obj.Type = "Input"
 	local row, title, right, desc = build(self, o)
 	local ring = stroke("Stroke")
 	local box = registerFont(create("TextBox", {
@@ -2762,7 +3278,7 @@ function Elements:Input(o)
 		PlaceholderText = o.Placeholder or "",
 		FontFace = FONT,
 		TextSize = 12,
-		ClearTextOnFocus = o.ClearOnFocus == true,
+		ClearTextOnFocus = (o.ClearOnFocus == true) or (o.ClearTextOnFocus == true),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Theme = {BackgroundColor3 = "Raised", TextColor3 = "Text", PlaceholderColor3 = "Muted"},
@@ -2770,8 +3286,11 @@ function Elements:Input(o)
 	box.Focused:Connect(function()
 		tween(ring, {Color = T.Accent}, 0.18)
 	end)
-	box.FocusLost:Connect(function()
+	box.FocusLost:Connect(function(enterPressed)
 		tween(ring, {Color = T.Stroke}, 0.18)
+		if o.Finished and not enterPressed then
+			return
+		end
 		obj.Value = box.Text
 		obj:Fire()
 	end)
@@ -2782,7 +3301,7 @@ function Elements:Input(o)
 				box.Text = clean
 			end
 		end
-		if o.Live then
+		if o.Live or (o.Finished == false) then
 			obj.Value = box.Text
 			obj:Fire()
 		end
@@ -2792,7 +3311,7 @@ function Elements:Input(o)
 		box.Text = self.Value
 		self:Fire(silent)
 	end
-	attachCommon(obj, row, title, desc, o)
+	attachCommon(obj, row, title, desc, o, self)
 	return obj
 end
 
@@ -2808,7 +3327,7 @@ function Elements:Keybind(o)
 	if o.OnChange then
 		kb:OnChanged(o.OnChange)
 	end
-	attachCommon(kb, row, title, desc, o)
+	attachCommon(kb, row, title, desc, o, self)
 	return kb
 end
 
@@ -2816,44 +3335,282 @@ function Elements:ColorPicker(o)
 	o = o or {}
 	local row, title, right, desc = build(self, o)
 	local cp = makeColor(right, o)
-	attachCommon(cp, row, title, desc, o)
+	attachCommon(cp, row, title, desc, o, self)
 	return cp
 end
 
-function Elements:DependencyBox(source, expected)
-	if expected == nil then
-		expected = true
-	end
+function Elements:Viewport(o)
+	o = o or {}
 	self.Order += 1
-	local holder = create("Frame", {
+	local h = o.Height or 180
+	local row = create("Frame", {
 		Parent = self.Body,
+		Size = UDim2.new(1, 0, 0, h),
+		BackgroundTransparency = 0.25,
+		LayoutOrder = self.Order,
+		Visible = o.Visible ~= false,
+		Theme = {BackgroundColor3 = "Raised"},
+	}, {corner(10), stroke("Stroke")})
+	local vp = create("ViewportFrame", {
+		Parent = row,
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		LightColor = WHITE,
+		Ambient = rgb(190, 190, 205),
+	}, {corner(10)})
+	local cam = o.Camera or create("Camera", {Parent = vp})
+	vp.CurrentCamera = cam
+	local obj = component(o, o.Object)
+	obj.Type = "Viewport"
+	obj.Viewport = vp
+	obj.Camera = cam
+	function obj:SetObject(inst, cloneObj)
+		for _, c in vp:GetChildren() do
+			if not c:IsA("Camera") and not c:IsA("UICorner") then
+				c:Destroy()
+			end
+		end
+		if inst then
+			local target = cloneObj ~= false and inst:Clone() or inst
+			target.Parent = vp
+			self.Object = target
+			return target
+		end
+		return nil
+	end
+	if o.Object then
+		obj:SetObject(o.Object, o.Clone)
+	end
+	attachCommon(obj, row, nil, nil, o, self)
+	return obj
+end
+
+function Elements:Image(o)
+	o = o or {}
+	self.Order += 1
+	local h = o.Height or 140
+	local row = create("Frame", {
+		Parent = self.Body,
+		Size = UDim2.new(1, 0, 0, h),
+		BackgroundTransparency = o.BackgroundTransparency or 0.35,
+		LayoutOrder = self.Order,
+		Visible = o.Visible ~= false,
+		Theme = {BackgroundColor3 = "Raised"},
+	}, {corner(10), stroke("Stroke")})
+	local img = create("ImageLabel", {
+		Parent = row,
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Image = resolveIcon(o.Image or o.Url or "") or (o.Image or ""),
+		ImageColor3 = o.Color or WHITE,
+		ImageRectOffset = o.RectOffset or Vector2.zero,
+		ImageRectSize = o.RectSize or Vector2.zero,
+		ScaleType = o.ScaleType or Enum.ScaleType.Fit,
+	}, {corner(10)})
+	local obj = component(o, img.Image)
+	obj.Type = "Image"
+	obj.ImageLabel = img
+	function obj:SetImage(val)
+		img.Image = resolveIcon(val) or tostring(val or "")
+		self.Value = img.Image
+	end
+	attachCommon(obj, row, nil, nil, o, self)
+	return obj
+end
+
+local function makeObsidianDepBox(parentContainer, parentObj, isGroupbox)
+	if parentObj.Order then
+		parentObj.Order += 1
+	end
+	local holder = create("Frame", {
+		Parent = parentContainer,
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		LayoutOrder = self.Order,
+		LayoutOrder = parentObj.Order or 99,
+		Visible = true,
 	})
 	local body = create("Frame", {
 		Parent = holder,
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 0.65,
-		Theme = {BackgroundColor3 = "Raised"},
-	}, {corner(8), stroke("Stroke", 1, 0.45), pad(6, 8), list(3)})
-	local sub = setmetatable({Frame = holder, Body = body, Items = self.Items, Order = 0}, ElementMeta)
-	local function update(val)
-		local match
-		if type(expected) == "function" then
-			match = expected(val)
-		elseif type(val) == "table" then
-			match = table.find(val, expected) ~= nil
-		else
-			match = val == expected
-		end
-		holder.Visible = match
+		BackgroundTransparency = isGroupbox and 0.15 or 1,
+		Theme = isGroupbox and {BackgroundColor3 = "Panel"} or nil,
+	}, isGroupbox and {corner(12), stroke("Stroke"), pad(8, 10, 10, 10), list(3)} or {list(3)})
+
+	local sub = setmetatable({
+		Type = isGroupbox and "DependencyGroupbox" or "DependencyBox",
+		Frame = holder,
+		BoxHolder = holder,
+		Body = body,
+		Holder = body,
+		Container = body,
+		Tab = parentObj.Tab or parentObj,
+		Items = parentObj.Items or {},
+		Elements = {},
+		DependencyBoxes = {},
+		Dependencies = {},
+		Order = 0,
+		Visible = true,
+		Destroyed = false,
+	}, ElementMeta)
+
+	function sub:Resize()
 	end
-	update(source.Value)
-	source:OnChanged(update)
+
+	function sub:SetVisible(state)
+		self.Visible = state ~= false
+		holder.Visible = self.Visible
+	end
+
+	function sub:Update()
+		if self.Destroyed then
+			return
+		end
+		if not self.Dependencies or #self.Dependencies == 0 then
+			self:SetVisible(true)
+			return
+		end
+		local pass = true
+		for _, pair in self.Dependencies do
+			local ctrl, expected = pair[1], pair[2]
+			if ctrl then
+				local val = ctrl.Value
+				local match = false
+				if type(expected) == "function" then
+					match = expected(val)
+				elseif type(val) == "table" then
+					if val[expected] ~= nil then
+						match = val[expected] == true
+					else
+						match = table.find(val, expected) ~= nil
+					end
+				else
+					match = val == expected
+				end
+				if not match then
+					pass = false
+					break
+				end
+			end
+		end
+		self:SetVisible(pass)
+	end
+
+	function sub:SetupDependencies(deps)
+		self.Dependencies = type(deps) == "table" and deps or {}
+		for _, pair in self.Dependencies do
+			local ctrl = pair[1]
+			if ctrl and ctrl.OnChanged then
+				ctrl:OnChanged(function()
+					self:Update()
+				end)
+			end
+		end
+		self:Update()
+	end
+
+	function sub:Destroy()
+		if self.Destroyed then
+			return
+		end
+		self.Destroyed = true
+		self.Visible = false
+		if holder.Parent then
+			holder:Destroy()
+		end
+	end
+
+	if parentObj.DependencyBoxes then
+		table.insert(parentObj.DependencyBoxes, sub)
+	end
+	if parentObj.DependencyGroupboxes then
+		table.insert(parentObj.DependencyGroupboxes, sub)
+	end
+	table.insert(Lumen.DependencyBoxes, sub)
 	return sub
+end
+
+function Elements:DependencyBox(source, expected)
+	if source == nil then
+		return makeObsidianDepBox(self.Body, self, false)
+	end
+	local sub = makeObsidianDepBox(self.Body, self, false)
+	sub:SetupDependencies({{source, expected == nil and true or expected}})
+	return sub
+end
+Elements.AddDependencyBox = function(self)
+	return makeObsidianDepBox(self.Body, self, false)
+end
+
+local function normalizeObsidianArgs(idx, info)
+	if type(idx) == "table" and info == nil then
+		local o = table.clone(idx)
+		o.Name = o.Name or o.Text or o.Title or ""
+		return o
+	end
+	local o = type(info) == "table" and table.clone(info) or {Text = tostring(info or idx or "")}
+	o.Flag = o.Flag or idx
+	o.Idx = idx
+	o.Name = o.Name or o.Text or o.Title or tostring(idx or "")
+	return o
+end
+
+function Elements:AddToggle(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	return self:Toggle(o)
+end
+
+function Elements:AddCheckbox(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	o.Checkbox = true
+	return self:Toggle(o)
+end
+
+function Elements:AddSlider(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	return self:Slider(o)
+end
+
+function Elements:AddDropdown(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	o.DictMulti = true
+	return self:Dropdown(o)
+end
+
+function Elements:AddInput(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	return self:Input(o)
+end
+
+function Elements:AddButton(infoOrText, func)
+	if type(infoOrText) == "string" then
+		return self:Button({Name = infoOrText, Text = infoOrText, Callback = func, Func = func})
+	end
+	local o = type(infoOrText) == "table" and table.clone(infoOrText) or {}
+	o.Name = o.Name or o.Text or "Button"
+	o.Callback = o.Callback or o.Func or func
+	o.Func = o.Callback
+	return self:Button(o)
+end
+
+function Elements:AddLabel(infoOrText, doesWrap, idx)
+	return self:Label(infoOrText, doesWrap, idx)
+end
+
+function Elements:AddDivider(labelText)
+	return self:Divider(labelText)
+end
+
+function Elements:AddViewport(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	return self:Viewport(o)
+end
+
+function Elements:AddImage(idx, info)
+	local o = normalizeObsidianArgs(idx, info)
+	return self:Image(o)
 end
 
 local Tab = {}
@@ -2945,6 +3702,7 @@ function Tab:Section(o)
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BorderSizePixel = 0,
 		LayoutOrder = self.Counts[col],
+		Visible = o.Visible ~= false,
 		Theme = {BackgroundColor3 = "Panel"},
 	}, {corner(12), stroke("Stroke"), list(0)}), 0.85, 0.04)
 
@@ -2966,7 +3724,7 @@ function Tab:Section(o)
 			x = 40
 		end
 	end
-	text({
+	local titleLabel = text({
 		Parent = header,
 		Text = o.Name or "Section",
 		Position = hasSub and UDim2.fromOffset(x, 8) or UDim2.fromOffset(x, 0),
@@ -3008,7 +3766,54 @@ function Tab:Section(o)
 		BackgroundTransparency = 1,
 	}, {pad(8, 10, 10, 10), list(3)})
 
-	local section = setmetatable({Frame = frame, Body = body, Items = {}, Order = 0, Name = o.Name, Collapsed = false}, ElementMeta)
+	local section = setmetatable({
+		Type = "Groupbox",
+		Frame = frame,
+		BoxHolder = frame,
+		Body = body,
+		Holder = body,
+		Container = body,
+		Tab = self,
+		Items = {},
+		Elements = {},
+		DependencyBoxes = {},
+		Order = 0,
+		Name = o.Name or "Section",
+		Collapsed = false,
+		Visible = o.Visible ~= false,
+		Destroyed = false,
+	}, ElementMeta)
+
+	function section:Resize()
+	end
+
+	function section:SetTitle(newTitle)
+		self.Name = tostring(newTitle or "")
+		titleLabel.Text = self.Name
+	end
+
+	function section:SetVisible(state)
+		self.Visible = state ~= false
+		frame.Visible = self.Visible
+	end
+
+	function section:SetPoppedOut(b, pos)
+		self.PoppedOut = b == true
+		if b and pos then
+			self.PopoutPosition = pos
+		end
+	end
+
+	function section:Destroy()
+		if self.Destroyed then
+			return
+		end
+		self.Destroyed = true
+		self.Visible = false
+		if frame.Parent then
+			frame:Destroy()
+		end
+	end
 
 	function section:SetCollapsed(state)
 		if state == self.Collapsed then
@@ -3040,17 +3845,72 @@ function Tab:Section(o)
 		end
 	end
 
-	if o.Collapsible ~= false then
+	if o.Collapsible ~= false and o.DisableCollapsing ~= true then
 		header.Activated:Connect(function()
 			section:SetCollapsed(not section.Collapsed)
 		end)
+	else
+		chevron.Visible = false
 	end
 	if o.Collapsed then
 		section:SetCollapsed(true)
 	end
 
 	table.insert(self.Sections, section)
+	if self.Groupboxes then
+		self.Groupboxes[section.Name] = section
+	end
 	return section
+end
+
+function Tab:AddGroupbox(info)
+	local o = type(info) == "table" and table.clone(info) or {Name = tostring(info or "Groupbox")}
+	if o.Side == 1 then
+		o.Side = "Left"
+	elseif o.Side == 2 then
+		o.Side = "Right"
+	end
+	return self:Section(o)
+end
+
+function Tab:AddLeftGroupbox(name, iconName, visible, collapsed, disableCollapsing)
+	if type(name) == "table" then
+		local o = table.clone(name)
+		o.Side = "Left"
+		return self:Section(o)
+	end
+	return self:Section({
+		Name = name,
+		Icon = iconName,
+		Side = "Left",
+		Visible = visible,
+		Collapsed = collapsed,
+		DisableCollapsing = disableCollapsing,
+	})
+end
+
+function Tab:AddRightGroupbox(name, iconName, visible, collapsed, disableCollapsing)
+	if type(name) == "table" then
+		local o = table.clone(name)
+		o.Side = "Right"
+		return self:Section(o)
+	end
+	return self:Section({
+		Name = name,
+		Icon = iconName,
+		Side = "Right",
+		Visible = visible,
+		Collapsed = collapsed,
+		DisableCollapsing = disableCollapsing,
+	})
+end
+
+function Tab:AddDependencyGroupbox()
+	local col = pickColumn(self, nil)
+	self.Counts[col] += 1
+	local sub = makeObsidianDepBox(self.Columns[col], self, true)
+	sub.Frame.LayoutOrder = self.Counts[col]
+	return sub
 end
 
 function Tab:Tabbox(o)
@@ -3065,6 +3925,7 @@ function Tab:Tabbox(o)
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BorderSizePixel = 0,
 		LayoutOrder = self.Counts[col],
+		Visible = o.Visible ~= false,
 		Theme = {BackgroundColor3 = "Panel"},
 	}, {corner(12), stroke("Stroke"), list(0)}), 0.85, 0.04)
 
@@ -3092,8 +3953,34 @@ function Tab:Tabbox(o)
 	})
 
 	local subTabs = {}
+	local subTabsMap = {}
 	local activeSub = nil
-	local box = {Frame = frame, Tabs = subTabs}
+	local box = {
+		Type = "Tabbox",
+		Name = o.Name or "Tabbox",
+		Frame = frame,
+		BoxHolder = frame,
+		Tab = parentTab,
+		Tabs = subTabsMap,
+		SubTabs = subTabs,
+		Visible = o.Visible ~= false,
+		Destroyed = false,
+	}
+
+	function box:Resize()
+	end
+
+	function box:SetVisible(state)
+		self.Visible = state ~= false
+		frame.Visible = self.Visible
+	end
+
+	function box:SetPoppedOut(b, pos)
+		self.PoppedOut = b == true
+		if b and pos then
+			self.PopoutPosition = pos
+		end
+	end
 
 	local function relayoutBar()
 		local n = #subTabs
@@ -3104,7 +3991,14 @@ function Tab:Tabbox(o)
 	end
 
 	function box:Select(st)
+		if type(st) == "string" then
+			st = subTabsMap[st]
+		end
+		if not st then
+			return
+		end
 		activeSub = st
+		self.ActiveTab = st
 		for _, item in subTabs do
 			local on = item == st
 			item.Body.Visible = on
@@ -3112,8 +4006,12 @@ function Tab:Tabbox(o)
 		end
 	end
 
-	function box:Tab(subOpts)
-		subOpts = type(subOpts) == "string" and {Name = subOpts} or (subOpts or {})
+	function box:Tab(subOpts, iconName)
+		if type(subOpts) == "string" then
+			subOpts = {Name = subOpts, Icon = iconName}
+		else
+			subOpts = subOpts or {}
+		end
 		local btn = create("TextButton", {
 			Parent = tabBar,
 			LayoutOrder = #subTabs + 1,
@@ -3140,10 +4038,11 @@ function Tab:Tabbox(o)
 				ic.LayoutOrder = 1
 			end
 		end
+		local tName = subOpts.Name or "Tab"
 		local lbl = text({
 			Parent = innerRow,
 			LayoutOrder = 2,
-			Text = subOpts.Name or "Tab",
+			Text = tName,
 			Size = UDim2.fromOffset(0, 28),
 			AutomaticSize = Enum.AutomaticSize.X,
 			TextTruncate = Enum.TextTruncate.None,
@@ -3161,13 +4060,23 @@ function Tab:Tabbox(o)
 		}, {pad(8, 10, 10, 10), list(3)})
 
 		local subSec = setmetatable({
+			Type = "SubTab",
 			Frame = frame,
+			BoxHolder = frame,
 			Body = body,
+			Holder = body,
+			Container = body,
+			Tab = parentTab,
 			Button = btn,
 			Items = {},
+			Elements = {},
+			DependencyBoxes = {},
 			Order = 0,
-			Name = subOpts.Name,
+			Name = tName,
 		}, ElementMeta)
+
+		function subSec:Resize()
+		end
 
 		function subSec:_render(on, animate)
 			apply(btn, {
@@ -3188,6 +4097,8 @@ function Tab:Tabbox(o)
 		end)
 
 		table.insert(subTabs, subSec)
+		subTabsMap[#subTabs] = subSec
+		subTabsMap[tName] = subSec
 		table.insert(parentTab.Sections, subSec)
 		relayoutBar()
 		if #subTabs == 1 then
@@ -3197,7 +4108,37 @@ function Tab:Tabbox(o)
 	end
 	box.AddTab = box.Tab
 
+	if self.Tabboxes then
+		self.Tabboxes[box.Name] = box
+		table.insert(self.Tabboxes, box)
+	end
 	return box
+end
+
+function Tab:AddTabbox(info)
+	local o = type(info) == "table" and table.clone(info) or {Name = tostring(info or "Tabbox")}
+	if o.Side == 1 then
+		o.Side = "Left"
+	elseif o.Side == 2 then
+		o.Side = "Right"
+	end
+	return self:Tabbox(o)
+end
+
+function Tab:AddLeftTabbox(name, iconName)
+	local o = type(name) == "table" and table.clone(name) or {Name = name or "Tabbox", Icon = iconName}
+	o.Side = "Left"
+	return self:Tabbox(o)
+end
+
+function Tab:AddRightTabbox(name, iconName)
+	local o = type(name) == "table" and table.clone(name) or {Name = name or "Tabbox", Icon = iconName}
+	o.Side = "Right"
+	return self:Tabbox(o)
+end
+
+function Tab:Show()
+	self.Window:Select(self)
 end
 
 function Tab:Filter(query)
@@ -3208,7 +4149,7 @@ function Tab:Filter(query)
 			item.Row.Visible = show
 			any = any or show
 		end
-		section.Frame.Visible = query == "" or any
+		section.Frame.Visible = (query == "" and section.Visible ~= false) or any
 	end
 end
 
@@ -3326,8 +4267,8 @@ function Window:Notify(o)
 	return self.Hub:Notify(o)
 end
 
-function Window:Dialog(o)
-	o = o or {}
+function Window:Dialog(idxOrOpts, opts)
+	local o = type(idxOrOpts) == "table" and idxOrOpts or (opts or {})
 	if self.DialogBackdrop then
 		self.DialogBackdrop:Destroy()
 	end
@@ -3393,48 +4334,86 @@ function Window:Dialog(o)
 		end)
 	end
 
-	local cancelBtn = registerFont(create("TextButton", {
-		Parent = actions,
-		LayoutOrder = 1,
-		Size = UDim2.fromOffset(96, 32),
-		AutoButtonColor = false,
-		Text = o.CancelText or "Cancel",
-		FontFace = FONT_B,
-		TextSize = 12,
-		Theme = {BackgroundColor3 = "Raised", TextColor3 = "Text"},
-	}, {corner(8), stroke("Stroke")}), "B")
-
-	local confirmColor = o.Risky and "Danger" or "Accent"
-	local confirmBtn = registerFont(create("TextButton", {
-		Parent = actions,
-		LayoutOrder = 2,
-		Size = UDim2.fromOffset(108, 32),
-		AutoButtonColor = false,
-		Text = o.ConfirmText or "Confirm",
-		FontFace = FONT_B,
-		TextSize = 12,
-		TextColor3 = WHITE,
-		Theme = {BackgroundColor3 = confirmColor},
-	}, {corner(8)}), "B")
-
-	cancelBtn.Activated:Connect(function()
-		closeDialog()
-		if o.OnCancel then
-			task.spawn(o.OnCancel)
+	if type(o.FooterButtons) == "table" then
+		for name, info in o.FooterButtons do
+			local btnTitle = type(info) == "table" and (info.Title or name) or tostring(name)
+			local variant = type(info) == "table" and info.Variant or "Ghost"
+			local isPrimary = variant == "Primary" or variant == "Destructive"
+			local isDanger = variant == "Destructive" or (type(info) == "table" and info.Risky)
+			local b = registerFont(create("TextButton", {
+				Parent = actions,
+				LayoutOrder = type(info) == "table" and (info.Order or 1) or 1,
+				Size = UDim2.fromOffset(102, 32),
+				AutoButtonColor = false,
+				Text = btnTitle,
+				FontFace = FONT_B,
+				TextSize = 12,
+				TextColor3 = isPrimary and WHITE or T.Text,
+				Theme = {BackgroundColor3 = isDanger and "Danger" or (isPrimary and "Accent" or "Raised")},
+			}, {corner(8), not isPrimary and stroke("Stroke") or nil}), "B")
+			b.Activated:Connect(function()
+				local cb = type(info) == "table" and (info.Callback or info.Func) or (type(info) == "function" and info or nil)
+				if cb then
+					task.spawn(cb)
+				end
+				if not (type(info) == "table" and info.Wait) then
+					closeDialog()
+				end
+			end)
 		end
-	end)
-	confirmBtn.Activated:Connect(function()
-		closeDialog()
-		if o.Callback then
-			task.spawn(o.Callback)
-		end
-	end)
+	else
+		local cancelBtn = registerFont(create("TextButton", {
+			Parent = actions,
+			LayoutOrder = 1,
+			Size = UDim2.fromOffset(96, 32),
+			AutoButtonColor = false,
+			Text = o.CancelText or "Cancel",
+			FontFace = FONT_B,
+			TextSize = 12,
+			Theme = {BackgroundColor3 = "Raised", TextColor3 = "Text"},
+		}, {corner(8), stroke("Stroke")}), "B")
+
+		local confirmColor = o.Risky and "Danger" or "Accent"
+		local confirmBtn = registerFont(create("TextButton", {
+			Parent = actions,
+			LayoutOrder = 2,
+			Size = UDim2.fromOffset(108, 32),
+			AutoButtonColor = false,
+			Text = o.ConfirmText or "Confirm",
+			FontFace = FONT_B,
+			TextSize = 12,
+			TextColor3 = WHITE,
+			Theme = {BackgroundColor3 = confirmColor},
+		}, {corner(8)}), "B")
+
+		cancelBtn.Activated:Connect(function()
+			closeDialog()
+			if o.OnCancel then
+				task.spawn(o.OnCancel)
+			end
+		end)
+		confirmBtn.Activated:Connect(function()
+			closeDialog()
+			if o.Callback then
+				task.spawn(o.Callback)
+			end
+		end)
+	end
+
+	if o.ClickOutsideToClose ~= false then
+		backdrop.Activated:Connect(function()
+			if not inside(card, mouse()) then
+				closeDialog()
+			end
+		end)
+	end
 
 	tween(backdrop, {BackgroundTransparency = 0.45}, 0.18)
 	tween(card, {GroupTransparency = 0}, 0.18)
 	tween(sc, {Scale = 1}, 0.22, Enum.EasingStyle.Back)
-	return {Dismiss = closeDialog}
+	return {Dismiss = closeDialog, Destroy = closeDialog}
 end
+Window.AddDialog = Window.Dialog
 
 function Window:SetCompact(state)
 	self.Compact = state == true
@@ -3443,11 +4422,66 @@ function Window:SetCompact(state)
 end
 
 function Window:SetSidebarWidth(width)
-	width = math.clamp(tonumber(width) or 216, 168, 280)
+	width = math.clamp(tonumber(width) or 216, 150, 320)
 	self.ExpandedWidth = width
 	if not self.Compact then
 		self:_applySidebarWidth(width, true)
 	end
+end
+
+function Window:GetSidebarWidth()
+	return self.Compact and 62 or (self.ExpandedWidth or Lumen.Config.SidebarWidth or 216)
+end
+
+function Window:SetAlwaysOnTop(state)
+	self.AlwaysOnTop = state == true
+	Gui.DisplayOrder = self.AlwaysOnTop and 2147483647 or 999
+end
+
+function Window:SetSnapping(enabled, dist, margin, avoid)
+	Lumen.Config.Snapping = enabled ~= false
+	if dist then
+		Lumen.Config.SnapDistance = tonumber(dist) or 24
+	end
+	self.SnapMargin = margin
+	self.AvoidTaskbar = avoid
+end
+
+function Window:SetAnimations(animTable, transitionTime, swipeOffset, swipeDirection)
+	if type(animTable) == "table" then
+		local map = {
+			ToggleWindow = "Window Toggle",
+			TabSwitch = "Tab Switch",
+			Groupbox = "Section Collapse",
+			Dropdown = "Dropdown Menu",
+			KeyPicker = "Popups",
+			ColorPicker = "Popups",
+			SubButton = "Button Ripple",
+		}
+		for k, v in animTable do
+			local mapped = map[k] or k
+			Lumen.Config.Animations[mapped] = v == true
+		end
+	end
+	if transitionTime then
+		Lumen.Config.TabAnimSpeed = tonumber(transitionTime) or 0.28
+	end
+	if swipeOffset then
+		Lumen.Config.TabSwipeOffset = tonumber(swipeOffset) or 18
+	end
+	if swipeDirection then
+		local dirMap = {
+			Bottom = "Slide Bottom",
+			Top = "Slide Top",
+			Right = "Slide Right",
+			Left = "Slide Left",
+		}
+		Lumen.Config.TabAnimStyle = dirMap[swipeDirection] or swipeDirection
+	end
+end
+
+function Window:SetCornerRadius(r)
+	Lumen:SetCornerRadius(r)
 end
 
 function Window:_applySidebarWidth(w, animate)
@@ -3474,7 +4508,7 @@ end
 function Window:SetBackgroundImage(imageId, alpha, scaleMode)
 	if imageId ~= nil then
 		local id = tostring(imageId)
-		if id ~= "" and not id:find("^rbxassetid://") and not id:find("^rbxthumb://") and tonumber(id) then
+		if id ~= "" and not id:find("://") and tonumber(id) then
 			id = "rbxassetid://" .. id
 		end
 		self.BgImage.Image = id
@@ -3506,7 +4540,10 @@ end
 function Window:Destroy()
 	self.Hub:_dockRemove(self)
 	local list_ = self.Hub.Windows
-	table.remove(list_, table.find(list_, self))
+	local i = table.find(list_, self)
+	if i then
+		table.remove(list_, i)
+	end
 	self.Root:Destroy()
 end
 
@@ -3533,6 +4570,7 @@ function Window:Select(tab)
 	end
 	local prev = self.Active
 	self.Active = tab
+	Lumen.ActiveTab = tab
 	self.PageToken += 1
 	local token = self.PageToken
 	if prev then
@@ -3593,10 +4631,26 @@ function Window:Select(tab)
 	end
 end
 
-function Window:Tab(o)
-	o = type(o) == "string" and {Name = o} or (o or {})
+function Window:Tab(o, iconName, description)
+	if type(o) == "string" then
+		o = {Name = o, Icon = iconName, Description = description, Tooltip = description}
+	else
+		o = o or {}
+		o.Name = o.Name or o.Title or "Tab"
+		o.Icon = o.Icon or iconName
+		o.Tooltip = o.Tooltip or o.Description or description
+	end
 	local win = self
-	local tab = setmetatable({Window = self, Name = o.Name or "Tab", Sections = {}, Counts = {0, 0}, Y = self.Cursor}, TabMeta)
+	local tab = setmetatable({
+		Window = self,
+		Name = o.Name or "Tab",
+		Sections = {},
+		Groupboxes = {},
+		Tabboxes = {},
+		DependencyGroupboxes = {},
+		Counts = {0, 0},
+		Y = self.Cursor,
+	}, TabMeta)
 	self.Cursor += 40
 	self.TabsScroll.CanvasSize = UDim2.fromOffset(0, self.Cursor + 8)
 
@@ -3701,23 +4755,26 @@ function Window:Tab(o)
 
 	tab.Page = page
 	tab.Scroll = scroll
+	tab.Sides = {scroll}
 	tab.Columns = columns
 	tab.Button = btn
 	tab.Icon = ico
 	tab.Label = label
 
 	table.insert(self.Tabs, tab)
+	Lumen.Tabs[tab.Name] = tab
 	if #self.Tabs == 1 then
 		self:Select(tab)
 	end
 	return tab
 end
+Window.AddTab = Window.Tab
 
 function Hub:Window(o)
 	o = o or {}
 	local view = Gui.AbsoluteSize
 	local autoCompact = view.X > 0 and view.X < 680
-	local isCompact = Lumen.Config.CompactSidebar or autoCompact
+	local isCompact = o.Compact ~= nil and o.Compact or (Lumen.Config.CompactSidebar or autoCompact)
 	local SW = isCompact and 62 or (Lumen.Config.SidebarWidth or 216)
 
 	local reqSize = o.Size or UDim2.fromOffset(920, 600)
@@ -3730,14 +4787,16 @@ function Hub:Window(o)
 
 	local win = setmetatable({
 		Hub = self,
-		Name = o.Name or "Window",
-		Description = o.Description or o.Sub or "",
+		Name = o.Name or o.Title or "Window",
+		Description = o.Description or o.Sub or o.Footer or "",
 		IconName = o.Icon or "layers",
+		Settings = o,
+		MobileButtons = {},
 		Tabs = {},
 		Categories = {},
 		Compact = isCompact,
 		ExpandedWidth = Lumen.Config.SidebarWidth or 216,
-		Opened = (o.Open ~= false) and (o.Visible ~= false),
+		Opened = (o.Open ~= false) and (o.Visible ~= false) and (o.AutoShow ~= false),
 		Minimized = false,
 		Shown = false,
 		AtDock = false,
@@ -3745,17 +4804,18 @@ function Hub:Window(o)
 		PageToken = 0,
 		Cursor = 8,
 	}, Window)
-	table.insert(self.Windows, win)
-	table.insert(Lumen.Windows, win)
-	local index = #self.Windows
+	local index = #self.Windows + 1
 	self.Z += 1
 	local minW, minH = 480, 340
+
+	local defaultPos = UDim2.new(0.5, (index - 1) * 28, 0.5, (index - 1) * 28 - 18)
+	local initPos = (o.Center == false and o.Position) and o.Position or (o.Position or defaultPos)
 
 	local root = create("Frame", {
 		Name = win.Name,
 		Parent = Layers.Windows,
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, (index - 1) * 28, 0.5, (index - 1) * 28 - 18),
+		Position = initPos,
 		Size = UDim2.fromOffset(initW, initH),
 		BackgroundTransparency = 1,
 		Visible = false,
@@ -3806,7 +4866,7 @@ function Hub:Window(o)
 	accentGradient(topGrad)
 	win.TopAccent = topAccent
 
-	win.Root, win.Rest, win.Scale, win.Body = root, root.Position, scale, body
+	win.Root, win.MainFrame, win.Rest, win.Scale, win.Body = root, root, root.Position, scale, body
 
 	local side = registerSurface(create("Frame", {
 		Parent = body,
@@ -3958,6 +5018,7 @@ function Hub:Window(o)
 	topHit.ZIndex = 0
 	local heading = text({
 		Parent = top,
+		Text = win.Name,
 		Position = UDim2.fromOffset(22, 0),
 		Size = UDim2.new(1, -350, 1, 0),
 		FontFace = FONT_X,
@@ -4042,8 +5103,13 @@ function Hub:Window(o)
 		tween(searchRing, {Color = T.Stroke}, 0.18)
 	end)
 	search:GetPropertyChangedSignal("Text"):Connect(function()
-		if win.Active then
-			win.Active:Filter(search.Text:lower())
+		local q = search.Text:lower()
+		if Lumen.GlobalSearch and q ~= "" then
+			for _, t in win.Tabs do
+				t:Filter(q)
+			end
+		elseif win.Active then
+			win.Active:Filter(q)
 		end
 	end)
 
@@ -4069,8 +5135,10 @@ function Hub:Window(o)
 		BackgroundTransparency = 1,
 		Text = "",
 		AutoButtonColor = false,
+		Visible = o.Resizable ~= false,
 		ZIndex = 5,
 	})
+	win.ResizeButton = grip
 	for i = 0, 1 do
 		create("Frame", {
 			Parent = grip,
@@ -4084,7 +5152,7 @@ function Hub:Window(o)
 	end
 	local resizing, startMouse, startSize, startPos
 	grip.InputBegan:Connect(function(i)
-		if isPress(i) then
+		if isPress(i) and grip.Visible then
 			resizing = true
 			startMouse = mouse(i)
 			startSize = root.Size
@@ -4114,6 +5182,8 @@ function Hub:Window(o)
 		win:_applySidebarWidth(62, false)
 	end
 
+	table.insert(self.Windows, win)
+	table.insert(Lumen.Windows, win)
 	self:_dockAdd(win)
 	task.defer(function()
 		win:_apply()
@@ -6601,6 +7671,341 @@ function Hub:Settings(window)
 	return tab
 end
 
+function Lumen:GiveSignal(conn)
+	if conn then
+		table.insert(connections, conn)
+	end
+	return conn
+end
+
+function Lumen:OnUnload(fn)
+	if type(fn) == "function" then
+		table.insert(self.UnloadSignals, fn)
+	end
+end
+
+function Lumen:SafeCallback(fn, ...)
+	if type(fn) ~= "function" then
+		return
+	end
+	local ok, res = pcall(fn, ...)
+	if not ok and self.NotifyOnError and self.Hub then
+		self.Hub:Notify({Title = "Callback Error", Content = tostring(res), Type = "Error"})
+	end
+	return res
+end
+
+function Lumen:MouseIsOverFrame(frame, pos)
+	local p = pos and Vector2.new(pos.X, pos.Y) or mouse()
+	return inside(frame, p)
+end
+
+function Lumen:GetCustomIcon(value)
+	if not value or value == "" then
+		return nil
+	end
+	local url = resolveIcon(value) or tostring(value)
+	return {
+		Url = url,
+		Id = 0,
+		IconName = tostring(value),
+		ImageRectOffset = Vector2.zero,
+		ImageRectSize = Vector2.zero,
+	}
+end
+
+function Lumen:ApplyLucideIcon(img, data)
+	if not img or type(data) ~= "table" then
+		return
+	end
+	img.Image = data.Url or ""
+	img.ImageRectOffset = data.ImageRectOffset or Vector2.zero
+	img.ImageRectSize = data.ImageRectSize or Vector2.zero
+end
+
+function Lumen:AddToRegistry(inst, props)
+	if inst and type(props) == "table" then
+		self.Registry[inst] = props
+		for prop, schemeKey in props do
+			local val = type(schemeKey) == "function" and schemeKey() or (self.Scheme[schemeKey] or T[schemeKey])
+			if val ~= nil then
+				pcall(function()
+					inst[prop] = val
+				end)
+			end
+		end
+	end
+end
+
+function Lumen:UpdateColorsUsingRegistry()
+	if self.Scheme then
+		local bg = self.Scheme.BackgroundColor or T.Back
+		local main = self.Scheme.MainColor or T.Panel
+		local accent = self.Scheme.AccentColor or T.Accent
+		local outline = self.Scheme.OutlineColor or T.Stroke
+		local fontCol = self.Scheme.FontColor or T.Text
+		T.Back = bg
+		T.Panel = main
+		T.Side = bg:Lerp(main, 0.45)
+		T.Raised = main:Lerp(WHITE, 0.05)
+		T.Hover = main:Lerp(WHITE, 0.1)
+		T.Stroke = outline
+		T.Text = fontCol
+		T.Muted = fontCol:Lerp(bg, 0.46)
+		T.Accent = accent
+		if self.Scheme.RedColor then
+			T.Danger = self.Scheme.RedColor
+		end
+	end
+	refreshTheme(true)
+end
+
+function Lumen:SetDPIScale(val)
+	local n = tonumber(val) or 1
+	if n > 5 then
+		n = n / 100
+	end
+	self.DPIScale = math.clamp(n, 0.65, 1.6)
+	self.Config.Scale = self.DPIScale
+	if self.Hub then
+		self.Hub:SetScale(self.DPIScale)
+	end
+end
+
+function Lumen:SetNotifySide(side)
+	self.NotifySide = tostring(side or "Right")
+	local s = self.NotifySide:lower()
+	local pos = s == "left" and "BottomLeft" or "BottomRight"
+	if self.Hub then
+		self.Hub:SetToastPosition(pos)
+	else
+		self.Config.ToastPosition = pos
+	end
+end
+
+function Lumen:SetBackgroundImage(img)
+	self.Scheme.BackgroundImage = tostring(img or "")
+	if self.Hub then
+		self.Hub:SetBackgroundImage(self.Scheme.BackgroundImage)
+	else
+		self.Config.BackgroundImage = self.Scheme.BackgroundImage
+	end
+end
+
+function Lumen:UpdateSearch(q)
+	q = tostring(q or ""):lower()
+	if self.Window then
+		if self.GlobalSearch and q ~= "" then
+			for _, t in self.Window.Tabs do
+				t:Filter(q)
+			end
+		elseif self.Window.Active then
+			self.Window.Active:Filter(q)
+		end
+	end
+end
+
+function Lumen:ChangeCursorIcon(url)
+	self.CustomCursorUrl = url
+end
+
+function Lumen:ChangeCursorIconSize(size)
+	self.CustomCursorSize = size
+end
+
+function Lumen:ResetCursorIcon()
+	self.CustomCursorUrl = nil
+end
+
+function Lumen:AddDraggableLabel(textStr, iconUri)
+	local pill = registerSurface(create("TextButton", {
+		Parent = Layers.Hud,
+		Position = UDim2.fromOffset(18, 18),
+		Size = UDim2.fromOffset(0, 34),
+		AutomaticSize = Enum.AutomaticSize.X,
+		AutoButtonColor = false,
+		FontFace = FONT_B,
+		TextSize = 12,
+		Text = "      " .. tostring(textStr or ""),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Theme = {BackgroundColor3 = "Panel", TextColor3 = "Text"},
+	}, {corner(10), stroke("Stroke"), pad(0, 14, 0, 12)}), 0.85, 0.04)
+
+	local iconImg = create("ImageLabel", {
+		Parent = pill,
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 0, 0.5, 0),
+		Size = UDim2.fromOffset(16, 16),
+		BackgroundTransparency = 1,
+		Image = resolveIcon(iconUri) or tostring(iconUri or ""),
+		ScaleType = Enum.ScaleType.Fit,
+		Visible = iconUri ~= nil and iconUri ~= "",
+	})
+	drag(pill, pill)
+
+	local curText = tostring(textStr or "")
+	local iconPos = "Left"
+	local function updateLayout()
+		if iconImg.Visible then
+			if iconPos == "Right" then
+				iconImg.AnchorPoint = Vector2.new(1, 0.5)
+				iconImg.Position = UDim2.new(1, 0, 0.5, 0)
+				pill.Text = curText .. "      "
+			else
+				iconImg.AnchorPoint = Vector2.new(0, 0.5)
+				iconImg.Position = UDim2.new(0, 0, 0.5, 0)
+				pill.Text = "      " .. curText
+			end
+		else
+			pill.Text = curText
+		end
+	end
+	updateLayout()
+
+	local holder = {
+		Label = pill,
+		Frame = pill,
+		SetText = function(_, t)
+			curText = tostring(t or "")
+			updateLayout()
+		end,
+		SetVisible = function(_, v)
+			pill.Visible = v ~= false
+		end,
+		SetIcon = function(_, uri)
+			iconImg.Image = resolveIcon(uri) or tostring(uri or "")
+			iconImg.Visible = uri ~= nil and uri ~= ""
+			updateLayout()
+		end,
+		SetIconPosition = function(_, pos)
+			iconPos = pos or "Left"
+			updateLayout()
+		end,
+		Destroy = function()
+			if pill.Parent then
+				pill:Destroy()
+			end
+		end,
+	}
+	return holder
+end
+
+function Lumen:AddDraggableButton(textStr, func, isToggle)
+	local btn = registerSurface(create("TextButton", {
+		Parent = Layers.Hud,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 56),
+		Size = UDim2.fromOffset(0, 32),
+		AutomaticSize = Enum.AutomaticSize.X,
+		AutoButtonColor = false,
+		FontFace = FONT_B,
+		TextSize = 12,
+		Text = tostring(textStr or "Button"),
+		Theme = {BackgroundColor3 = "Panel", TextColor3 = "Text"},
+	}, {corner(9), stroke("Stroke"), pad(0, 14, 0, 14)}), 0.85, 0.04)
+
+	local wasMoved = drag(btn, btn)
+	local state = false
+	btn.Activated:Connect(function()
+		if wasMoved() then
+			return
+		end
+		if isToggle then
+			state = not state
+		end
+		if type(func) == "function" then
+			task.spawn(func, state)
+		end
+	end)
+
+	local obj = {
+		Button = btn,
+		SetText = function(_, t)
+			btn.Text = tostring(t or "")
+		end,
+		SetVisible = function(_, v)
+			btn.Visible = v ~= false
+		end,
+		Destroy = function()
+			if btn.Parent then
+				btn:Destroy()
+			end
+		end,
+	}
+	if self.Window and self.Window.MobileButtons then
+		table.insert(self.Window.MobileButtons, obj)
+	end
+	return obj
+end
+
+function Lumen:Notify(info, duration, sound, volume)
+	if not self.Hub then
+		return
+	end
+	local data = type(info) == "table" and table.clone(info) or {Title = tostring(info or "Notification")}
+	data.Duration = data.Duration or data.Time or duration
+	data.Sound = data.Sound or data.SoundId or sound
+	data.Volume = data.Volume or volume
+	return self.Hub:Notify(data)
+end
+
+function Lumen:Toggle(state)
+	if state == nil then
+		state = not self.Toggled
+	end
+	self.Toggled = state == true
+	if self.Hub then
+		self.Hub:SetVisible(self.Toggled)
+	end
+end
+
+function Lumen:CreateWindow(o)
+	o = o or {}
+	local key = o.ToggleKeybind or o.Key or Enum.KeyCode.RightShift
+	self.ToggleKeybind = key
+	self.GlobalSearch = o.GlobalSearch == true
+	if o.NotifySide then
+		self:SetNotifySide(o.NotifySide)
+	end
+	if o.CornerRadius then
+		self.CornerRadius = o.CornerRadius
+		self.Config.CornerRadius = o.CornerRadius
+	end
+	if o.DPIScale then
+		self:SetDPIScale(o.DPIScale)
+	end
+	local hub = self.Hub or self:Taskbar({
+		Name = o.Title or o.Name or "Lumen",
+		Description = o.Footer or o.SubTitle or o.Description or "Universal Suite",
+		Icon = o.Icon or "layers",
+		Key = key,
+		CornerRadius = o.CornerRadius or 12,
+		KeybindList = true,
+	})
+	if hub.BindFrame then
+		self.KeybindFrame = hub.BindFrame
+		if not o.ShowKeybindList then
+			hub.BindFrame.Visible = false
+		end
+	end
+	local win = hub:Window({
+		Name = o.Title or o.Name or "Lumen",
+		Description = o.Footer or o.SubTitle or o.Description or "",
+		Icon = o.Icon or "layers",
+		Size = o.Size or UDim2.fromOffset(880, 640),
+		Position = o.Position,
+		Center = o.Center,
+		AutoShow = o.AutoShow,
+		Compact = o.Compact,
+		Resizable = o.Resizable,
+	})
+	if o.Animations then
+		win:SetAnimations(o.Animations)
+	end
+	self.Window = win
+	return win
+end
+
 function Lumen:Taskbar(o)
 	if self ~= Lumen and type(self) == "table" and o == nil then
 		o = self
@@ -6671,6 +8076,7 @@ function Lumen:Taskbar(o)
 	end
 	if o.KeybindList then
 		hub:KeybindList()
+		self.KeybindFrame = hub.BindFrame
 	end
 	hub:_inputs()
 	hub:_splash(o)
@@ -6679,8 +8085,18 @@ end
 Lumen.new = Lumen.Taskbar
 
 function Lumen:Unload()
+	if self.Unloaded then
+		return
+	end
+	self.Unloaded = true
+	for _, fn in self.UnloadSignals do
+		pcall(fn)
+	end
+	table.clear(self.UnloadSignals)
 	for _, c in connections do
-		c:Disconnect()
+		pcall(function()
+			c:Disconnect()
+		end)
 	end
 	table.clear(connections)
 	table.clear(bindings)
@@ -6689,15 +8105,22 @@ function Lumen:Unload()
 	table.clear(surfaceFrames)
 	table.clear(cornerNodes)
 	table.clear(toggleNodes)
+	table.clear(self.Registry)
 	if self.Hub then
 		for _, t in self.Hub.Toasts do
-			t.Conn:Disconnect()
+			pcall(function()
+				t.Conn:Disconnect()
+			end)
 		end
 		if self.Hub.BlurEffect then
-			self.Hub.BlurEffect:Destroy()
+			pcall(function()
+				self.Hub.BlurEffect:Destroy()
+			end)
 		end
 	end
-	Gui:Destroy()
+	pcall(function()
+		Gui:Destroy()
+	end)
 	env.Lumen = nil
 end
 
