@@ -62,8 +62,6 @@ local Lumen = {
 		ToggleStyle = "Switch",
 		CustomCursor = false,
 		MobileButton = isMobile,
-		JigglyDrag = true,
-		JiggleIntensity = 1,
 		Snapping = true,
 		SnapDistance = 24,
 		BackgroundImage = "",
@@ -599,76 +597,143 @@ local function accentGradient(grad)
 end
 
 local Core = {
-	search = "rbxassetid://10734943674",
-	check = "rbxassetid://10709790644",
-	["chevron-down"] = "rbxassetid://10709790948",
-	["chevron-up"] = "rbxassetid://10709791523",
-	["chevron-right"] = "rbxassetid://10709791437",
-	["chevron-left"] = "rbxassetid://10709791281",
-	x = "rbxassetid://10747384394",
-	minus = "rbxassetid://10734896206",
-	plus = "rbxassetid://10734924532",
-	settings = "rbxassetid://10734950309",
-	bell = "rbxassetid://10709775704",
-	["bell-off"] = "rbxassetid://10709775324",
-	home = "rbxassetid://10723407389",
-	user = "rbxassetid://10747373176",
-	users = "rbxassetid://10747373426",
-	shield = "rbxassetid://10734951847",
-	zap = "rbxassetid://10747384830",
-	eye = "rbxassetid://10723346959",
-	["eye-off"] = "rbxassetid://10723346871",
-	crosshair = "rbxassetid://10709818534",
-	target = "rbxassetid://10734977012",
-	sliders = "rbxassetid://10734963400",
-	["sliders-horizontal"] = "rbxassetid://10734963191",
-	folder = "rbxassetid://10723387563",
-	save = "rbxassetid://10734941499",
-	["trash-2"] = "rbxassetid://10747362393",
-	trash = "rbxassetid://10747362393",
-	["rotate-ccw"] = "rbxassetid://10734940376",
-	["refresh-cw"] = "rbxassetid://10734933222",
-	power = "rbxassetid://10734930466",
-	info = "rbxassetid://10723415903",
-	["triangle-alert"] = "rbxassetid://10709753149",
-	["alert-triangle"] = "rbxassetid://10709753149",
-	["circle-check"] = "rbxassetid://10709790387",
-	["check-circle"] = "rbxassetid://10709790387",
-	["circle-x"] = "rbxassetid://10747383819",
-	["x-circle"] = "rbxassetid://10747383819",
-	sparkles = "rbxassetid://10734966248",
-	palette = "rbxassetid://10734910430",
-	["layout-grid"] = "rbxassetid://10723425376",
-	layers = "rbxassetid://10723424505",
-	terminal = "rbxassetid://10734982144",
-	keyboard = "rbxassetid://10723416765",
-	globe = "rbxassetid://10723404337",
-	copy = "rbxassetid://10709812159",
-	download = "rbxassetid://10723344270",
-	upload = "rbxassetid://10747366434",
-	lock = "rbxassetid://10723434711",
-	unlock = "rbxassetid://10747366027",
-	swords = "rbxassetid://10734975692",
-	compass = "rbxassetid://10709811445",
-	cpu = "rbxassetid://10709813383",
-	["panel-left"] = "rbxassetid://10734914327",
-	image = "rbxassetid://10723415040",
-	move = "rbxassetid://10734900011",
-	radar = "rbxassetid://10709811445",
-	activity = "rbxassetid://10709752035",
-	wind = "rbxassetid://10747382750",
-	sun = "rbxassetid://10734974297",
-	moon = "rbxassetid://10734897102",
-	radio = "rbxassetid://10734931596",
-	star = "rbxassetid://10734966248",
-	heart = "rbxassetid://10723406885",
-	wrench = "rbxassetid://10747383470",
-	code = "rbxassetid://10709810463",
-	clock = "rbxassetid://10709805144",
-	list = "rbxassetid://10723433811",
-	play = "rbxassetid://10734923549",
-	pause = "rbxassetid://10734919336",
-	["volume-2"] = "rbxassetid://10747376008",
+	["activity"] = "rbxassetid://94212016861936",
+	["airplay"] = "rbxassetid://115020759309179",
+	["alert-triangle"] = "rbxassetid://125920361880643",
+	["apple"] = "rbxassetid://104349242902442",
+	["arrow-right-left"] = "rbxassetid://77015754304300",
+	["audio-lines"] = "rbxassetid://70930641819242",
+	["badge"] = "rbxassetid://116620312917084",
+	["bell"] = "rbxassetid://97392696311902",
+	["bell-off"] = "rbxassetid://78560046118930",
+	["bell-ring"] = "rbxassetid://94612128913941",
+	["bolt"] = "rbxassetid://102881251417484",
+	["boxes"] = "rbxassetid://136372617578355",
+	["camera"] = "rbxassetid://79950339943067",
+	["check"] = "rbxassetid://93898873302694",
+	["check-circle"] = "rbxassetid://85262178816537",
+	["chevron-down"] = "rbxassetid://134243273101015",
+	["chevron-left"] = "rbxassetid://73780377692148",
+	["chevron-right"] = "rbxassetid://92473583511724",
+	["chevron-up"] = "rbxassetid://122444883127455",
+	["circle-check"] = "rbxassetid://85262178816537",
+	["circle-dot"] = "rbxassetid://82947033619201",
+	["circle-question-mark"] = "rbxassetid://97516698664325",
+	["circle-slash"] = "rbxassetid://125206439913049",
+	["circle-user-round"] = "rbxassetid://95489465399880",
+	["circle-x"] = "rbxassetid://76821953846248",
+	["clipboard-copy"] = "rbxassetid://125851897718493",
+	["clock"] = "rbxassetid://121808839832144",
+	["cloudy"] = "rbxassetid://105360479023346",
+	["code"] = "rbxassetid://107380207681249",
+	["columns-2"] = "rbxassetid://113004100221850",
+	["compass"] = "rbxassetid://115123411028382",
+	["copy"] = "rbxassetid://78979572434545",
+	["cpu"] = "rbxassetid://77549309870247",
+	["crosshair"] = "rbxassetid://134242818164054",
+	["dock"] = "rbxassetid://121997427160252",
+	["dollar-sign"] = "rbxassetid://127320961224019",
+	["download"] = "rbxassetid://134814648082393",
+	["drama"] = "rbxassetid://110297795801577",
+	["eye"] = "rbxassetid://100033680381365",
+	["eye-off"] = "rbxassetid://135928786788378",
+	["files"] = "rbxassetid://102806336233202",
+	["flame"] = "rbxassetid://98218034436456",
+	["flask-conical"] = "rbxassetid://128406680901165",
+	["folder"] = "rbxassetid://80846616596607",
+	["funnel"] = "rbxassetid://108829540827529",
+	["gamepad-2"] = "rbxassetid://92483947987410",
+	["gauge"] = "rbxassetid://110273524101447",
+	["globe"] = "rbxassetid://114238209622913",
+	["grip-vertical"] = "rbxassetid://137183678565296",
+	["hand"] = "rbxassetid://130703864968637",
+	["hand-grab"] = "rbxassetid://88867162163985",
+	["heart"] = "rbxassetid://116559368303288",
+	["home"] = "rbxassetid://98755624629571",
+	["house"] = "rbxassetid://98755624629571",
+	["image"] = "rbxassetid://112751259236831",
+	["info"] = "rbxassetid://124560466474914",
+	["keyboard"] = "rbxassetid://121474456068237",
+	["layers"] = "rbxassetid://81973586053257",
+	["layout-grid"] = "rbxassetid://81344910161871",
+	["link"] = "rbxassetid://131607023382430",
+	["list"] = "rbxassetid://113179976918783",
+	["lock"] = "rbxassetid://134724289526879",
+	["lock-open"] = "rbxassetid://93597915325122",
+	["magnet"] = "rbxassetid://135162361226972",
+	["map-pin"] = "rbxassetid://84279202219901",
+	["maximize"] = "rbxassetid://76045941763188",
+	["minimize"] = "rbxassetid://121304296213645",
+	["minus"] = "rbxassetid://118026365011536",
+	["monitor"] = "rbxassetid://72664649203050",
+	["moon"] = "rbxassetid://83380517901735",
+	["mouse-pointer-click"] = "rbxassetid://107150227368485",
+	["move"] = "rbxassetid://116138709011735",
+	["move-3d"] = "rbxassetid://103365982054003",
+	["move-diagonal"] = "rbxassetid://101433481954184",
+	["orbit"] = "rbxassetid://108926136860562",
+	["package"] = "rbxassetid://97261141732706",
+	["package-plus"] = "rbxassetid://129261988138366",
+	["palette"] = "rbxassetid://86350350950064",
+	["panel-left"] = "rbxassetid://97419752870313",
+	["panels-top-left"] = "rbxassetid://79858853850600",
+	["pause"] = "rbxassetid://74873705394436",
+	["person-standing"] = "rbxassetid://125020872044147",
+	["play"] = "rbxassetid://135609604299893",
+	["plus"] = "rbxassetid://111774323017047",
+	["power"] = "rbxassetid://96479131758775",
+	["radar"] = "rbxassetid://138528222906635",
+	["radio"] = "rbxassetid://85611589536956",
+	["radio-tower"] = "rbxassetid://93958663130054",
+	["refresh-cw"] = "rbxassetid://138133190015277",
+	["rotate-ccw"] = "rbxassetid://110116685948665",
+	["save"] = "rbxassetid://126116963775616",
+	["scan"] = "rbxassetid://123104789658180",
+	["scan-line"] = "rbxassetid://126544908146540",
+	["scroll"] = "rbxassetid://74072101474951",
+	["scroll-text"] = "rbxassetid://97321022666868",
+	["search"] = "rbxassetid://121018724060431",
+	["settings"] = "rbxassetid://80758916183665",
+	["settings-2"] = "rbxassetid://135684703553372",
+	["shapes"] = "rbxassetid://129989433311409",
+	["shield"] = "rbxassetid://110987169760162",
+	["shield-check"] = "rbxassetid://87354736164608",
+	["shield-off"] = "rbxassetid://133426959132690",
+	["shield-user"] = "rbxassetid://124832775645347",
+	["skull"] = "rbxassetid://137726256442333",
+	["sliders"] = "rbxassetid://85538382643347",
+	["sliders-horizontal"] = "rbxassetid://85538382643347",
+	["sliders-vertical"] = "rbxassetid://101190569086853",
+	["smartphone"] = "rbxassetid://96623008834511",
+	["snowflake"] = "rbxassetid://101235206534566",
+	["sparkles"] = "rbxassetid://138635884129147",
+	["spline"] = "rbxassetid://129406685807412",
+	["star"] = "rbxassetid://136141469398409",
+	["sun"] = "rbxassetid://110150589884127",
+	["swords"] = "rbxassetid://81872698913435",
+	["table"] = "rbxassetid://109109148250737",
+	["target"] = "rbxassetid://87563802520297",
+	["terminal"] = "rbxassetid://106783148545356",
+	["timer-reset"] = "rbxassetid://110052125369932",
+	["train-front"] = "rbxassetid://125237934215370",
+	["trash"] = "rbxassetid://106723740584310",
+	["trash-2"] = "rbxassetid://109843431391323",
+	["triangle-alert"] = "rbxassetid://125920361880643",
+	["undo-2"] = "rbxassetid://113885292059932",
+	["unlock"] = "rbxassetid://93597915325122",
+	["upload"] = "rbxassetid://138212042425501",
+	["user"] = "rbxassetid://81589895647169",
+	["user-round"] = "rbxassetid://136485052187963",
+	["users"] = "rbxassetid://115398113982385",
+	["users-round"] = "rbxassetid://103005444008339",
+	["venetian-mask"] = "rbxassetid://102636443033920",
+	["volume-2"] = "rbxassetid://89344380902620",
+	["wand-sparkles"] = "rbxassetid://82546429942392",
+	["wind"] = "rbxassetid://114551690399915",
+	["wrench"] = "rbxassetid://112148279212860",
+	["x"] = "rbxassetid://110786993356448",
+	["x-circle"] = "rbxassetid://76821953846248",
+	["zap"] = "rbxassetid://130551565616516",
 }
 
 local RemoteIcons = {}
@@ -899,38 +964,17 @@ link(UIS.InputBegan, function(input)
 	end
 end)
 
-local function drag(handle, target, onEnd, snapEnabled, jiggleTarget)
-	local active, startMouse, lastMouse, startPos = false, nil, nil, nil
+local function drag(handle, target, onEnd, snapEnabled)
+	local active, startMouse, startPos = false, nil, nil
 	local moved = false
-	local rotObj = jiggleTarget or target
-	local currentVel = 0
-	local stepConn = nil
 
 	handle.InputBegan:Connect(function(input)
 		if isPress(input) then
 			active = true
 			moved = false
 			startMouse = mouse(input)
-			lastMouse = startMouse
 			startPos = target.Position
-			currentVel = 0
 			closePopup()
-			if stepConn then
-				stepConn:Disconnect()
-			end
-			stepConn = RS.RenderStepped:Connect(function()
-				if not active then
-					return
-				end
-				if Lumen.Config.JigglyDrag ~= false then
-					currentVel = currentVel * 0.78
-					local strength = Lumen.Config.JiggleIntensity or 1
-					local goalRot = math.clamp(currentVel * 0.22 * strength, -5.5 * strength, 5.5 * strength)
-					rotObj.Rotation = rotObj.Rotation + (goalRot - rotObj.Rotation) * 0.32
-				else
-					rotObj.Rotation = 0
-				end
-			end)
 		end
 	end)
 	link(UIS.InputChanged, function(input)
@@ -940,10 +984,6 @@ local function drag(handle, target, onEnd, snapEnabled, jiggleTarget)
 			if d.Magnitude > 4 then
 				moved = true
 			end
-			local frameDelta = cur.X - lastMouse.X
-			currentVel = currentVel * 0.4 + frameDelta * 0.6
-			lastMouse = cur
-
 			local view = Gui.AbsoluteSize
 			local s = target.AbsoluteSize
 			local a = target.AnchorPoint
@@ -982,19 +1022,14 @@ local function drag(handle, target, onEnd, snapEnabled, jiggleTarget)
 			snapH.Visible = showH
 			x = math.clamp(x, s.X * a.X + 8 - s.X * 0.5, view.X - s.X * (1 - a.X) - 8 + s.X * 0.5)
 			y = math.clamp(y, s.Y * a.Y + 8, view.Y - s.Y * (1 - a.Y) - 8)
-			tween(target, {Position = UDim2.fromOffset(x, y)}, 0.075, Enum.EasingStyle.Quad)
+			target.Position = UDim2.fromOffset(math.round(x), math.round(y))
 		end
 	end)
 	link(UIS.InputEnded, function(input)
 		if active and isPress(input) then
 			active = false
-			if stepConn then
-				stepConn:Disconnect()
-				stepConn = nil
-			end
 			snapV.Visible = false
 			snapH.Visible = false
-			tween(rotObj, {Rotation = 0}, 0.55, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
 			if onEnd then
 				onEnd(moved)
 			end
@@ -4005,7 +4040,7 @@ function Tab:Tabbox(o)
 		local n = #subTabs
 		local gap = 6
 		for _, st in subTabs do
-			st.Button.Size = UDim2.new(1 / n, -(gap * (n - 1)) / n, 1, 0)
+			st.TabButton.Size = UDim2.new(1 / n, -(gap * (n - 1)) / n, 1, 0)
 		end
 	end
 
@@ -4086,7 +4121,7 @@ function Tab:Tabbox(o)
 			Holder = body,
 			Container = body,
 			Tab = parentTab,
-			Button = btn,
+			TabButton = btn,
 			Items = {},
 			Elements = {},
 			DependencyBoxes = {},
@@ -4591,20 +4626,17 @@ function Window:Select(tab)
 	self.Active = tab
 	Lumen.ActiveTab = tab
 	self.PageToken += 1
-	local token = self.PageToken
 	if prev then
 		prev:Filter("")
 	end
 	for _, t in self.Tabs do
 		t:_style(t == tab, true)
-		if t ~= tab and t ~= prev then
-			t.Page.Visible = false
-		end
+		t.Page.Visible = (t == tab)
 	end
 	self.Indicator.Visible = true
 	local useAnim = animEnabled("Tab Switch") and Lumen.Config.TabAnimStyle ~= "Instant"
-	local dur = Lumen.Config.TabAnimSpeed or 0.28
-	local offset = Lumen.Config.TabSwipeOffset or 18
+	local dur = Lumen.Config.TabAnimSpeed or 0.24
+	local offset = Lumen.Config.TabSwipeOffset or 14
 	local style = Lumen.Config.TabAnimStyle or "Slide Bottom"
 
 	if prev and useAnim then
@@ -4614,23 +4646,13 @@ function Window:Select(tab)
 	end
 	self.Heading.Text = tab.Name
 	self.Search.Text = ""
-	if prev then
-		local old = prev.Page
-		if useAnim then
-			tween(old, {GroupTransparency = 1}, math.min(0.12, dur * 0.45))
-			task.delay(math.min(0.14, dur * 0.5), function()
-				if self.PageToken == token then
-					old.Visible = false
-				end
-			end)
-		else
-			old.Visible = false
-		end
-	end
+
 	local page = tab.Page
-	if useAnim then
+	local scroll = tab.Scroll
+	page.Visible = true
+	if useAnim and scroll then
 		local startPos = UDim2.fromOffset(0, 0)
-		if style == "Slide Bottom" then
+		if style == "Slide Bottom" or style == "Auto" or style == "auto" then
 			startPos = UDim2.fromOffset(0, offset)
 		elseif style == "Slide Top" then
 			startPos = UDim2.fromOffset(0, -offset)
@@ -4639,15 +4661,53 @@ function Window:Select(tab)
 		elseif style == "Slide Left" then
 			startPos = UDim2.fromOffset(-offset, 0)
 		end
-		page.Position = startPos
-		page.GroupTransparency = 1
-		page.Visible = true
-		tween(page, {Position = UDim2.fromOffset(0, 0), GroupTransparency = 0}, dur)
-	else
-		page.Position = UDim2.fromOffset(0, 0)
-		page.GroupTransparency = 0
-		page.Visible = true
+		scroll.Position = startPos
+		tween(scroll, {Position = UDim2.fromOffset(0, 0)}, dur, Enum.EasingStyle.Quint)
+	elseif scroll then
+		scroll.Position = UDim2.fromOffset(0, 0)
 	end
+	if self.Hub then
+		self.Hub:_refreshDock()
+	end
+end
+
+local TabLucideMap = {
+	home = "house",
+	info = "info",
+	favourites = "star",
+	favorites = "star",
+	attack = "swords",
+	combat = "swords",
+	target = "crosshair",
+	blobman = "venetian-mask",
+	defense = "shield",
+	invincibility = "shield",
+	clicker = "mouse-pointer-click",
+	["auto clicker"] = "mouse-pointer-click",
+	["auto-clicker"] = "mouse-pointer-click",
+	grab = "hand-grab",
+	props = "boxes",
+	player = "person-standing",
+	visuals = "eye",
+	visual = "eye",
+	misc = "shapes",
+	testing = "flask-conical",
+	keybinds = "keyboard",
+	lists = "scroll-text",
+	settings = "settings",
+	["ui settings"] = "settings",
+	configs = "folder",
+}
+
+local function pickTabLucideIcon(tabName, passedIcon)
+	local clean = tostring(tabName or ""):gsub("<[^>]+>", ""):lower():gsub("^2%s+", ""):match("^%s*(.-)%s*$")
+	if TabLucideMap[clean] then
+		return TabLucideMap[clean]
+	end
+	if type(passedIcon) == "string" and passedIcon ~= "" and not passedIcon:find("^%d+$") and not passedIcon:find("://") then
+		return passedIcon
+	end
+	return passedIcon or "layout-grid"
 end
 
 function Window:Tab(o, iconName, description)
@@ -4659,10 +4719,12 @@ function Window:Tab(o, iconName, description)
 		o.Icon = o.Icon or iconName
 		o.Tooltip = o.Tooltip or o.Description or description
 	end
+	local resolvedIcon = pickTabLucideIcon(o.Name, o.Icon)
 	local win = self
 	local tab = setmetatable({
 		Window = self,
 		Name = o.Name or "Tab",
+		IconName = resolvedIcon,
 		Sections = {},
 		Groupboxes = {},
 		Tabboxes = {},
@@ -4683,7 +4745,7 @@ function Window:Tab(o, iconName, description)
 		ZIndex = 2,
 		Theme = {BackgroundColor3 = "Raised"},
 	}, {corner(10)})
-	local ico = icon(btn, o.Icon or "layout-grid", 16, T.Muted)
+	local ico = icon(btn, resolvedIcon, 16, T.Muted)
 	ico.AnchorPoint = self.Compact and Vector2.new(0.5, 0.5) or Vector2.new(0, 0.5)
 	ico.Position = self.Compact and UDim2.fromScale(0.5, 0.5) or UDim2.new(0, 14, 0.5, 0)
 	local label = text({
@@ -4726,11 +4788,10 @@ function Window:Tab(o, iconName, description)
 		win:Select(tab)
 	end)
 
-	local page = create("CanvasGroup", {
+	local page = create("Frame", {
 		Parent = self.Pages,
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		GroupTransparency = 1,
 		Visible = false,
 	})
 	local scroll = create("ScrollingFrame", {
@@ -4782,6 +4843,9 @@ function Window:Tab(o, iconName, description)
 
 	table.insert(self.Tabs, tab)
 	Lumen.Tabs[tab.Name] = tab
+	if self.Hub then
+		self.Hub:_dockAddTab(self, tab)
+	end
 	if #self.Tabs == 1 then
 		self:Select(tab)
 	end
@@ -5143,8 +5207,8 @@ function Hub:Window(o)
 	local function saveRest()
 		win.Rest = root.Position
 	end
-	drag(brandHit, root, saveRest, true, body)
-	drag(topHit, root, saveRest, true, body)
+	drag(brandHit, root, saveRest, true)
+	drag(topHit, root, saveRest, true)
 
 	local grip = create("TextButton", {
 		Parent = body,
@@ -5274,15 +5338,95 @@ function Hub:_focus(win)
 end
 
 function Hub:_refreshDock()
-	for win, e in self.Entries do
-		local opened = win.Opened
-		local focused = opened and not win.Minimized and self.Focused == win
-		tween(e.Indicator, {
-			Size = UDim2.fromOffset(opened and (focused and 16 or 6) or 0, 3),
-			BackgroundColor3 = focused and T.Accent or T.Muted,
-		}, 0.26)
-		tween(e.Icon, {ImageColor3 = opened and T.Text or T.Muted}, 0.22)
+	local singleWin = #self.Windows == 1 and self.Windows[1] or nil
+	if singleWin and #singleWin.Tabs > 0 then
+		for win, e in self.Entries do
+			e.Button.Visible = false
+		end
+		if self.TabEntries then
+			for tab, e in self.TabEntries do
+				e.Button.Visible = true
+				local active = singleWin.Opened and not singleWin.Minimized and singleWin.Active == tab
+				tween(e.Indicator, {
+					Size = UDim2.fromOffset(active and 16 or 0, 3),
+					BackgroundColor3 = active and T.Accent or T.Muted,
+				}, 0.22)
+				tween(e.Icon, {ImageColor3 = active and T.Accent or T.Muted}, 0.2)
+				tween(e.Button, {BackgroundTransparency = active and 0.82 or 1}, 0.2)
+			end
+		end
+	else
+		if self.TabEntries then
+			for _, e in self.TabEntries do
+				e.Button.Visible = false
+			end
+		end
+		for win, e in self.Entries do
+			e.Button.Visible = true
+			local opened = win.Opened
+			local focused = opened and not win.Minimized and self.Focused == win
+			tween(e.Indicator, {
+				Size = UDim2.fromOffset(opened and (focused and 16 or 6) or 0, 3),
+				BackgroundColor3 = focused and T.Accent or T.Muted,
+			}, 0.26)
+			tween(e.Icon, {ImageColor3 = opened and T.Text or T.Muted}, 0.22)
+		end
 	end
+end
+
+function Hub:_dockAddTab(win, tab)
+	self.TabEntries = self.TabEntries or {}
+	if self.TabEntries[tab] or not self.DockWindows then
+		return
+	end
+	local btn = create("TextButton", {
+		Parent = self.DockWindows,
+		LayoutOrder = 100 + #win.Tabs,
+		Size = UDim2.fromOffset(38, 38),
+		BackgroundTransparency = 1,
+		Text = "",
+		AutoButtonColor = false,
+		Theme = {BackgroundColor3 = "Accent"},
+	}, {corner(11)})
+	local scale = create("UIScale", {Parent = btn})
+	local ic = center(icon(btn, tab.IconName or "layout-grid", 18, T.Muted))
+	local ind = create("Frame", {
+		Parent = btn,
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -2),
+		Size = UDim2.fromOffset(0, 3),
+		BorderSizePixel = 0,
+		BackgroundColor3 = T.Accent,
+	}, {corner(PILL)})
+	self.TabEntries[tab] = {Button = btn, Indicator = ind, Icon = ic, Window = win}
+
+	btn.MouseEnter:Connect(function()
+		if win.Active ~= tab then
+			apply(btn, {BackgroundTransparency = 0.55}, true, 0.14, "Hover Effects")
+			apply(ic, {ImageColor3 = T.Text}, true, 0.14, "Hover Effects")
+		end
+	end)
+	btn.MouseLeave:Connect(function()
+		local active = win.Opened and not win.Minimized and win.Active == tab
+		apply(btn, {BackgroundTransparency = active and 0.82 or 1}, true, 0.18, "Hover Effects")
+		apply(ic, {ImageColor3 = active and T.Accent or T.Muted}, true, 0.18, "Hover Effects")
+	end)
+	pressable(btn, scale, 1.08, 0.92)
+	tooltip(btn, function()
+		return tab.Name
+	end)
+
+	btn.Activated:Connect(function()
+		closePopup()
+		if not win.Opened then
+			win:Open()
+		elseif win.Minimized then
+			win:Restore()
+		end
+		win:Select(tab)
+		bounce(ic)
+	end)
+	self:_refreshDock()
 end
 
 function Hub:_refreshBlur()
@@ -7285,33 +7429,10 @@ function Hub:Settings(window)
 
 	local animSec = tab:Section({
 		Name = "Animations & HUD",
-		Description = "Jiggly drag physics, motion curves & overlays",
+		Description = "Motion curves, transitions & HUD overlays",
 		Icon = "sparkles",
 		Side = "Right",
 	})
-
-	local jiggleToggle = animSec:Toggle({
-		Name = "Jiggly Drag Physics",
-		Description = "Velocity tilt & elastic spring on drag",
-		Default = Lumen.Config.JigglyDrag,
-		Flag = "UIJigglyDrag",
-		Callback = function(v)
-			Lumen.Config.JigglyDrag = v
-		end,
-	})
-
-	animSec:Slider({
-		Name = "Jiggle Intensity",
-		Min = 0.2,
-		Max = 2,
-		Increment = 0.1,
-		Default = Lumen.Config.JiggleIntensity or 1,
-		Suffix = "x",
-		Flag = "UIJiggleStrength",
-		Callback = function(v)
-			Lumen.Config.JiggleIntensity = v
-		end,
-	}):Depend(jiggleToggle, true)
 
 	local animKeys = {"Window Toggle", "Tab Switch", "Section Collapse", "Dropdown Menu", "Popups", "Button Ripple", "Hover Effects"}
 	animSec:Dropdown({
@@ -7660,7 +7781,7 @@ function Hub:Settings(window)
 	})
 	sysSec:Paragraph({
 		Name = "Lumen UI v" .. Lumen.Version,
-		Content = "Includes 22 built-in themes, custom theme manager with WCAG contrast verification, jiggly drag physics, mobile support, window snapping, compact sidebar, sub-buttons, tabboxes, dependency boxes, and autoload profiles.",
+		Content = "Includes 22 built-in themes, custom theme manager with WCAG contrast verification, mobile support, window snapping, compact sidebar, sub-buttons, tabboxes, dependency boxes, and autoload profiles.",
 	})
 	sysSec:Button({
 		Name = "Unload Interface",
@@ -8022,6 +8143,104 @@ function Lumen:CreateWindow(o)
 		win:SetAnimations(o.Animations)
 	end
 	self.Window = win
+	task.defer(function()
+		for _, t in win.Tabs do
+			local clean = tostring(t.Name or ""):gsub("<[^>]+>", ""):lower():gsub("^2%s+", ""):match("^%s*(.-)%s*$")
+			if clean == "ui settings" or clean == "settings" then
+				local glassSec = t:Section({
+					Name = "Lumen Glass, Blur & Dock",
+					Description = "World blur, acrylic glass transparency & bottom dock",
+					Icon = "sparkles",
+					Side = "Right",
+				})
+				local bToggle = glassSec:Toggle({
+					Name = "Background Blur",
+					Description = "Blur 3D world when UI is open",
+					Default = Lumen.Config.Blur,
+					Flag = "UIBlurEnabled",
+					Callback = function(v)
+						hub:SetBlur(v, nil)
+					end,
+				})
+				glassSec:Slider({
+					Name = "Blur Intensity",
+					Min = 2,
+					Max = 32,
+					Increment = 1,
+					Default = Lumen.Config.BlurSize or 14,
+					Suffix = " px",
+					Flag = "UIBlurSize",
+					Callback = function(v)
+						hub:SetBlur(nil, v)
+					end,
+				}):Depend(bToggle, true)
+				glassSec:Slider({
+					Name = "UI Glass Transparency",
+					Min = 0,
+					Max = 65,
+					Increment = 1,
+					Default = math.floor((Lumen.Config.Transparency or 0.16) * 100 + 0.5),
+					Suffix = "%",
+					Flag = "UITransparency",
+					Callback = function(v)
+						Lumen:SetTransparency(v / 100)
+					end,
+				})
+				glassSec:Slider({
+					Name = "Corner Radius",
+					Min = 0,
+					Max = 22,
+					Increment = 1,
+					Default = Lumen.Config.CornerRadius or 12,
+					Suffix = " px",
+					Flag = "UICornerRadius",
+					Callback = function(v)
+						Lumen:SetCornerRadius(v)
+					end,
+				})
+				glassSec:Dropdown({
+					Name = "Toggle Style",
+					Values = {"Switch", "Checkbox"},
+					Default = Lumen.Config.ToggleStyle or "Switch",
+					Flag = "UIToggleStyle",
+					Callback = function(v)
+						Lumen:SetToggleStyle(v)
+					end,
+				})
+				glassSec:Toggle({
+					Name = "Top Accent Line",
+					Default = Lumen.Config.TopAccentLine ~= false,
+					Flag = "UITopAccent",
+					Callback = function(v)
+						Lumen.Config.TopAccentLine = v
+						win:SetTopAccent(v)
+					end,
+				})
+				glassSec:Toggle({
+					Name = "Bottom Taskbar Dock",
+					Default = hub.Dock ~= nil and hub.Dock.Visible,
+					Flag = "UIDockVisible",
+					Callback = function(v)
+						if hub.Dock then
+							hub.Dock.Visible = v
+						end
+					end,
+				})
+				glassSec:Toggle({
+					Name = "Floating Toggle Pill",
+					Default = Lumen.Config.MobileButton == true,
+					Flag = "UIMobileButton",
+					Callback = function(v)
+						Lumen.Config.MobileButton = v
+						if hub.MobilePill then
+							hub.MobilePill.Visible = v
+						end
+					end,
+				})
+				break
+			end
+		end
+	end)
 	return win
 end
 
@@ -8061,12 +8280,6 @@ function Lumen:Taskbar(o)
 		self.Config.MobileButton = o.MobileButton
 	elseif o.MobileFriendly ~= nil then
 		self.Config.MobileButton = o.MobileFriendly
-	end
-	if o.JigglyDrag ~= nil then
-		self.Config.JigglyDrag = o.JigglyDrag
-	end
-	if o.JiggleIntensity ~= nil then
-		self.Config.JiggleIntensity = o.JiggleIntensity
 	end
 	local hub = setmetatable({
 		Name = o.Name or "Lumen",
