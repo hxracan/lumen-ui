@@ -1,276 +1,388 @@
-local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan/lumen-ui/refs/heads/main/Lumen.lua"))()
+local Lumen = loadstring(readfile("Lumen.lua"))()
 
-local Hub = Lumen:Taskbar({
-	Name = "Lumen Hub",
-	Description = "v4.0",
-	Icon = "layers",
+local Hub = Lumen.new({
+	Name = "LUMEN",
+	Sub = "v4.5  •  ELITE INTERFACE",
 	Key = Enum.KeyCode.RightShift,
-	Blur = 14,
+	Theme = "Carbon",
+	Watermark = true,
+	KeybindList = true,
+	Dock = true,
 	Splash = true,
-	LoadedSound = "rbxassetid://6647897822",
-	NotifySound = "rbxassetid://9120371540",
+	Blur = false,
+	Transparency = 0.16,
+	WindowSize = "Medium (760x540)",
+	AnimationType = "Scale + Fade",
+	JigglyDrag = true,
+	JiggleIntensity = 1.15,
+	MobileFriendly = true,
+	ConfigFolder = "LumenConfigs",
 })
 
 local Main = Hub:Window({
-	Name = "Lumen",
-	Description = "Universal Suite v4.0",
-	Icon = "layers",
-	Size = UDim2.fromOffset(920, 600),
+	Name = "Combat & Visuals",
+	Sub = "Primary Module Suite",
+	Icon = "shield",
+	Size = UDim2.fromOffset(760, 540),
+	Position = UDim2.fromOffset(100, 80),
+	Visible = true,
 })
 
-Main:Category("Combat")
+local RadarWin = Hub:Window({
+	Name = "Entity Inspector",
+	Sub = "Live Telemetry",
+	Icon = "radar",
+	Size = UDim2.fromOffset(500, 380),
+	Position = UDim2.fromOffset(880, 110),
+	Visible = false,
+})
 
-local Combat = Main:Tab({Name = "Aimbot", Icon = "crosshair"})
+Main:Category("COMBAT")
 
-local Aim = Combat:Section({
+local Combat = Main:Tab({
+	Name = "Aimbot",
+	Icon = "crosshair",
+})
+
+local AimSec = Combat:Section({
 	Name = "Silent Aim",
-	Description = "Projectile redirection & target acquisition",
 	Icon = "target",
 	Side = "Left",
 })
 
-local AimToggle = Aim:Toggle({
-	Name = "Silent Aim",
-	Description = "Redirects projectiles toward the closest target",
+local MasterAim = AimSec:Toggle({
+	Name = "Enable Silent Aim",
+	Description = "Redirects projectiles toward the optimal target bone",
 	Default = true,
-	Flag = "SilentAim",
-	Tooltip = "Hold or toggle your keybind to lock onto players",
-	Callback = function(v)
-		print("Silent Aim:", v)
+	Flag = "SilentAim_Enabled",
+	Risky = true,
+	Callback = function(state)
+		Hub:Notify({
+			Title = "Silent Aim",
+			Text = state and "Silent Aim is now active" or "Silent Aim disabled",
+			Type = state and "Success" or "Info",
+			Time = 2.5,
+		})
 	end,
 })
-AimToggle:Bind({Default = Enum.KeyCode.E, Mode = "Toggle", Flag = "SilentAimBind"})
-AimToggle:Color({Default = Color3.fromRGB(124, 92, 255), Flag = "SilentAimColor"})
 
-local AimDep = Aim:DependencyBox(AimToggle, true)
-
-AimDep:Slider({
-	Name = "Hit Chance",
-	Min = 1,
-	Max = 100,
-	Default = 85,
-	Suffix = "%",
-	Flag = "AimHitChance",
+MasterAim:Keybind({
+	Default = Enum.KeyCode.Q,
+	Mode = "Toggle",
+	Flag = "SilentAim_Bind",
 })
 
-AimDep:Toggle({
-	Name = "Magic Bullet",
-	Description = "Bypass wall penetration checks",
-	Risky = true,
-	Flag = "MagicBullet",
+MasterAim:Color({
+	Default = Color3.fromRGB(130, 145, 255),
+	Alpha = 0.2,
+	Flag = "SilentAim_Color",
 })
 
-Aim:Slider({
+AimSec:Slider({
 	Name = "Field of View",
-	Description = "Maximum radius around cursor",
+	Description = "Maximum angular radius for target acquisition",
 	Min = 10,
 	Max = 360,
 	Default = 140,
+	Step = 1,
 	Suffix = "°",
-	Flag = "AimFOV",
+	Flag = "SilentAim_FOV",
 })
 
-Aim:Slider({
-	Name = "Smoothing",
-	Description = "Camera interpolation factor",
+AimSec:Slider({
+	Name = "Hit Chance",
 	Min = 0,
-	Max = 1,
-	Increment = 0.05,
-	Default = 0.25,
-	Flag = "AimSmooth",
+	Max = 100,
+	Default = 88,
+	Step = 1,
+	Suffix = "%",
+	Flag = "SilentAim_HitChance",
 })
 
-Aim:Dropdown({
-	Name = "Hitbox",
-	Values = {"Head", "UpperTorso", "HumanoidRootPart", "Closest"},
-	Default = "Head",
-	Flag = "AimHitbox",
+AimSec:Dropdown({
+	Name = "Target Hitbox",
+	Description = "Prioritized bones during target evaluation",
+	Items = {"Head", "UpperTorso", "HumanoidRootPart", "LeftArm", "RightArm"},
+	Multi = true,
+	Default = {"Head", "UpperTorso"},
+	Flag = "SilentAim_Bones",
 })
 
-local Checks = Combat:Section({
-	Name = "Checks & Actions",
-	Description = "Target filtering & quick utilities",
-	Icon = "shield",
+AimSec:Dropdown({
+	Name = "Target Priority",
+	Items = {"Closest to Crosshair", "Lowest Health", "Shortest Distance", "Threat Level"},
+	Default = "Closest to Crosshair",
+	Flag = "SilentAim_Priority",
+})
+
+local SubBox = Combat:Tabbox({
 	Side = "Right",
 })
 
-Checks:Dropdown({
-	Name = "Validation",
-	Description = "Conditions required before locking",
-	Values = {"Team Check", "Wall Check", "Alive Check", "ForceField Check", "Friend Check"},
-	Default = {"Team Check", "Alive Check"},
-	Multi = true,
-	Flag = "AimChecks",
-})
-
-Checks:Input({
-	Name = "Target Priority",
-	Placeholder = "Username...",
-	Flag = "PriorityUser",
-})
-
-Checks:Divider("QUICK ACTIONS")
-
-local SnapBtn = Checks:Button({
-	Name = "Snap to Target",
+local TrigTab = SubBox:Tab({
+	Name = "Triggerbot",
 	Icon = "zap",
-	Style = "Primary",
-	Callback = function()
-		Hub:Notify({
-			Title = "Locked On",
-			Content = "Snapped camera to nearest target.",
-			Type = "Success",
-			Duration = 3,
-		})
-	end,
 })
-SnapBtn:SubButton({
-	Name = "Reset Target",
-	Icon = "rotate-ccw",
-	Callback = function()
-		Hub:Notify({
-			Title = "Target Cleared",
-			Content = "Cleared current lock target.",
-			Type = "Info",
-			Duration = 2.5,
-		})
-	end,
-})
-
-local ToastBtn = Checks:Button({
-	Name = "Test Notifications",
-	Icon = "bell",
-	Callback = function()
-		Hub:Notify({Title = "Information", Content = "Target configuration updated.", Type = "Info", Duration = 3})
-		task.delay(0.25, function()
-			Hub:Notify({Title = "Warning", Content = "High smoothing detected.", Type = "Warning", Duration = 4})
-		end)
-		task.delay(0.5, function()
-			Hub:Notify({Title = "Danger", Content = "Anti-cheat check triggered.", Type = "Error", Duration = 5})
-		end)
-	end,
-})
-ToastBtn:SubButton({
-	Name = "Test Dialog",
-	Icon = "shield",
-	Callback = function()
-		Main:Dialog({
-			Title = "Enable Rage Mode?",
-			Content = "Rage features may trigger server-side heuristics. Do you want to proceed?",
-			ConfirmText = "Enable",
-			Risky = true,
-			Callback = function()
-				Hub:Notify({Title = "Rage Mode", Content = "Rage profile activated.", Type = "Warning"})
-			end,
-		})
-	end,
-})
-
-local SubBox = Combat:Tabbox({Side = "Right"})
-local TrigTab = SubBox:Tab("Triggerbot")
-local ResTab = SubBox:Tab("Prediction")
 
 local TrigToggle = TrigTab:Toggle({
-	Name = "Auto Trigger",
-	Description = "Fires automatically when crosshair is on target",
-	Flag = "TriggerEnabled",
+	Name = "Auto Fire",
+	Description = "Automatically fires when crosshair intersects target",
+	Default = false,
+	Flag = "Trigger_Enabled",
+	Risky = true,
 })
-TrigToggle:Bind({Default = Enum.KeyCode.T, Mode = "Hold", Flag = "TriggerBind"})
+
+TrigToggle:Keybind({
+	Default = Enum.KeyCode.T,
+	Mode = "Hold",
+	Flag = "Trigger_Bind",
+})
 
 TrigTab:Slider({
 	Name = "Reaction Delay",
 	Min = 0,
 	Max = 250,
-	Increment = 5,
 	Default = 35,
+	Step = 5,
 	Suffix = "ms",
-	Flag = "TriggerDelay",
+	Flag = "Trigger_Delay",
 })
 
-ResTab:Toggle({
-	Name = "Movement Prediction",
-	Description = "Compensate for target velocity",
+local PredTab = SubBox:Tab({
+	Name = "Prediction",
+	Icon = "activity",
+})
+
+PredTab:Toggle({
+	Name = "Velocity Compensation",
+	Description = "Predicts target trajectory using ping and velocity",
 	Default = true,
-	Flag = "AimPredict",
+	Flag = "Pred_Enabled",
 })
 
-ResTab:Slider({
+PredTab:Slider({
 	Name = "Prediction Factor",
 	Min = 0.05,
 	Max = 0.35,
-	Increment = 0.01,
-	Default = 0.14,
+	Default = 0.142,
+	Step = 0.001,
 	Suffix = "s",
-	Flag = "AimPredictFactor",
+	Flag = "Pred_Factor",
 })
 
-Main:Category("Visuals")
-
-local Visuals = Main:Tab({Name = "ESP", Icon = "eye"})
-
-local PlayerESP = Visuals:Section({
-	Name = "Players",
-	Description = "Bounding boxes, nametags & chams",
-	Icon = "user",
-	Side = "Left",
-})
-
-local BoxESP = PlayerESP:Toggle({
-	Name = "Bounding Box",
-	Description = "2D corner box around players",
-	Default = true,
-	Flag = "ESPBox",
-})
-BoxESP:Color({Default = Color3.fromRGB(124, 92, 255), Flag = "ESPBoxColor"})
-
-local NameESP = PlayerESP:Toggle({
-	Name = "Display Names",
-	Default = true,
-	Flag = "ESPName",
-})
-NameESP:Color({Default = Color3.fromRGB(255, 255, 255), Flag = "ESPNameColor"})
-
-local Chams = PlayerESP:Toggle({
-	Name = "Highlight Chams",
-	Description = "Filled mesh highlight with transparency",
-	Flag = "ESPChams",
-})
-Chams:Color({Default = Color3.fromRGB(52, 211, 153), Alpha = 0.45, Flag = "ESPChamsColor"})
-
-PlayerESP:Slider({
-	Name = "Max Distance",
-	Min = 100,
-	Max = 5000,
-	Increment = 50,
-	Default = 1500,
-	Suffix = "m",
-	Flag = "ESPDistance",
-})
-
-local World = Visuals:Section({
-	Name = "World",
-	Description = "Atmosphere & lighting modulation",
-	Icon = "globe",
+local UtilSec = Combat:Section({
+	Name = "Quick Actions",
+	Icon = "sliders",
 	Side = "Right",
 })
 
-World:Paragraph({
-	Name = "Environment Modulation",
-	Content = "Override client lighting, fog, and post-processing effects in real time.",
+UtilSec:Button({
+	Name = "Snap to Nearest",
+	Icon = "crosshair",
+	Callback = function()
+		Hub:Notify({
+			Title = "Target Locked",
+			Text = "Snapped camera to closest visible enemy",
+			Type = "Info",
+			Time = 2.5,
+		})
+	end,
+	SubName = "Test Notification",
+	SubIcon = "bell",
+	SubCallback = function()
+		Hub:Notify({
+			Title = "Lumen Notification",
+			Text = "Acrylic toast with smooth spring transitions",
+			Type = "Success",
+			Time = 3.5,
+		})
+	end,
 })
 
-local Ambient = World:Toggle({Name = "Custom Ambient", Flag = "WorldAmbient"})
-Ambient:Color({Default = Color3.fromRGB(90, 110, 255), Flag = "WorldAmbientColor"})
+local MoveTab = Main:Tab({
+	Name = "Movement",
+	Icon = "zap",
+})
 
-World:Slider({
-	Name = "Time of Day",
+local MoveSec = MoveTab:Section({
+	Name = "Character Physics",
+	Icon = "activity",
+	Side = "Left",
+})
+
+local SpeedToggle = MoveSec:Toggle({
+	Name = "Speed Modification",
+	Description = "Overrides humanoid walk velocity smoothly",
+	Default = false,
+	Flag = "Move_SpeedEnabled",
+	Risky = true,
+})
+
+SpeedToggle:Keybind({
+	Default = Enum.KeyCode.V,
+	Mode = "Toggle",
+	Flag = "Move_SpeedBind",
+})
+
+MoveSec:Slider({
+	Name = "WalkSpeed Multiplier",
+	Min = 16,
+	Max = 150,
+	Default = 32,
+	Step = 1,
+	Suffix = " stud/s",
+	Flag = "Move_SpeedVal",
+})
+
+local FlightSec = MoveTab:Section({
+	Name = "Aerial Control",
+	Icon = "wind",
+	Side = "Right",
+})
+
+local FlyToggle = FlightSec:Toggle({
+	Name = "CFrame Flight",
+	Description = "Smooth directional flight bypassing gravity",
+	Default = false,
+	Flag = "Move_FlyEnabled",
+	Risky = true,
+})
+
+FlyToggle:Keybind({
+	Default = Enum.KeyCode.F,
+	Mode = "Toggle",
+	Flag = "Move_FlyBind",
+})
+
+FlightSec:Slider({
+	Name = "Flight Velocity",
+	Min = 20,
+	Max = 200,
+	Default = 65,
+	Step = 5,
+	Suffix = " stud/s",
+	Flag = "Move_FlySpeed",
+})
+
+Main:Category("RENDER")
+
+local Visuals = Main:Tab({
+	Name = "ESP",
+	Icon = "eye",
+})
+
+local EspSec = Visuals:Section({
+	Name = "Player Overlay",
+	Icon = "users",
+	Side = "Left",
+})
+
+local BoxToggle = EspSec:Toggle({
+	Name = "Bounding Box",
+	Description = "Renders 2D corner or full boxes around entities",
+	Default = true,
+	Flag = "ESP_Box",
+})
+
+BoxToggle:Color({
+	Default = Color3.fromRGB(130, 145, 255),
+	Alpha = 0,
+	Flag = "ESP_BoxColor",
+})
+
+local ChamsToggle = EspSec:Toggle({
+	Name = "Highlight Chams",
+	Description = "Applies depth-aware surface highlights to models",
+	Default = true,
+	Flag = "ESP_Chams",
+})
+
+ChamsToggle:Color({
+	Default = Color3.fromRGB(65, 215, 145),
+	Alpha = 0.35,
+	Flag = "ESP_ChamsColor",
+})
+
+EspSec:Slider({
+	Name = "Max Render Distance",
+	Min = 100,
+	Max = 5000,
+	Default = 1500,
+	Step = 50,
+	Suffix = "m",
+	Flag = "ESP_MaxDist",
+})
+
+local WorldSec = Visuals:Section({
+	Name = "Atmosphere",
+	Icon = "sun",
+	Side = "Right",
+})
+
+local AmbToggle = WorldSec:Toggle({
+	Name = "Custom Ambient",
+	Description = "Overrides world lighting and outdoor tint",
+	Default = false,
+	Flag = "World_Ambient",
+})
+
+AmbToggle:Color({
+	Default = Color3.fromRGB(150, 130, 255),
+	Alpha = 0,
+	Flag = "World_AmbientColor",
+})
+
+WorldSec:Slider({
+	Name = "Clock Time",
 	Min = 0,
 	Max = 24,
-	Increment = 0.5,
-	Default = 14,
+	Default = 14.5,
+	Step = 0.5,
 	Suffix = "h",
-	Flag = "WorldClock",
+	Flag = "World_Time",
 })
 
+local RadarTab = RadarWin:Tab({
+	Name = "Overview",
+	Icon = "activity",
+})
+
+local RadarSec = RadarTab:Section({
+	Name = "Scanner",
+	Icon = "radio",
+	Side = "Left",
+})
+
+RadarSec:Toggle({
+	Name = "Show Dormant",
+	Default = true,
+	Flag = "Radar_Dormant",
+})
+
+RadarSec:Slider({
+	Name = "Update Rate",
+	Min = 10,
+	Max = 144,
+	Default = 60,
+	Step = 1,
+	Suffix = "Hz",
+	Flag = "Radar_Rate",
+})
+
+local RadarInfo = RadarTab:Section({
+	Name = "Session Info",
+	Icon = "terminal",
+	Side = "Right",
+})
+
+RadarInfo:Label("Status: Active & Synchronized")
+RadarInfo:Divider("Telemetry")
+RadarInfo:Paragraph("Lumen v4.5 uses zero-dependency spring physics, velocity-tilted jiggly drag, full touch & mobile responsiveness, and Obsidian-grade customization.")
+
 Hub:Settings(Main)
-Lumen:LoadAutoloadConfig()
+Hub:Notify({
+	Title = "Lumen v4.5 Ready",
+	Text = "Press RightShift or tap the top pill on mobile to toggle.",
+	Type = "Success",
+	Time = 4,
+})
