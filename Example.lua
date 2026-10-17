@@ -2,7 +2,7 @@ local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan
 
 local Hub = Lumen:Taskbar({
 	Name = "Lumen Hub",
-	Description = "v3.0",
+	Description = "v4.0",
 	Icon = "layers",
 	Key = Enum.KeyCode.RightShift,
 	Blur = 14,
@@ -13,16 +13,21 @@ local Hub = Lumen:Taskbar({
 
 local Main = Hub:Window({
 	Name = "Lumen",
-	Description = "Universal Suite",
+	Description = "Universal Suite v4.0",
 	Icon = "layers",
-	Size = UDim2.fromOffset(880, 580),
+	Size = UDim2.fromOffset(920, 600),
 })
 
 Main:Category("Combat")
 
 local Combat = Main:Tab({Name = "Aimbot", Icon = "crosshair"})
 
-local Aim = Combat:Section({Name = "Silent Aim", Icon = "target", Side = "Left"})
+local Aim = Combat:Section({
+	Name = "Silent Aim",
+	Description = "Projectile redirection & target acquisition",
+	Icon = "target",
+	Side = "Left",
+})
 
 local AimToggle = Aim:Toggle({
 	Name = "Silent Aim",
@@ -36,6 +41,24 @@ local AimToggle = Aim:Toggle({
 })
 AimToggle:Bind({Default = Enum.KeyCode.E, Mode = "Toggle", Flag = "SilentAimBind"})
 AimToggle:Color({Default = Color3.fromRGB(124, 92, 255), Flag = "SilentAimColor"})
+
+local AimDep = Aim:DependencyBox(AimToggle, true)
+
+AimDep:Slider({
+	Name = "Hit Chance",
+	Min = 1,
+	Max = 100,
+	Default = 85,
+	Suffix = "%",
+	Flag = "AimHitChance",
+})
+
+AimDep:Toggle({
+	Name = "Magic Bullet",
+	Description = "Bypass wall penetration checks",
+	Risky = true,
+	Flag = "MagicBullet",
+})
 
 Aim:Slider({
 	Name = "Field of View",
@@ -64,7 +87,12 @@ Aim:Dropdown({
 	Flag = "AimHitbox",
 })
 
-local Checks = Combat:Section({Name = "Checks & Trigger", Icon = "shield", Side = "Right"})
+local Checks = Combat:Section({
+	Name = "Checks & Actions",
+	Description = "Target filtering & quick utilities",
+	Icon = "shield",
+	Side = "Right",
+})
 
 Checks:Dropdown({
 	Name = "Validation",
@@ -81,7 +109,7 @@ Checks:Input({
 	Flag = "PriorityUser",
 })
 
-Checks:Divider()
+Checks:Divider("QUICK ACTIONS")
 
 local SnapBtn = Checks:Button({
 	Name = "Snap to Target",
@@ -96,9 +124,20 @@ local SnapBtn = Checks:Button({
 		})
 	end,
 })
-SnapBtn:Bind({Default = Enum.KeyCode.R, Flag = "SnapBind"})
+SnapBtn:SubButton({
+	Name = "Reset Target",
+	Icon = "rotate-ccw",
+	Callback = function()
+		Hub:Notify({
+			Title = "Target Cleared",
+			Content = "Cleared current lock target.",
+			Type = "Info",
+			Duration = 2.5,
+		})
+	end,
+})
 
-Checks:Button({
+local ToastBtn = Checks:Button({
 	Name = "Test Notifications",
 	Icon = "bell",
 	Callback = function()
@@ -111,12 +150,70 @@ Checks:Button({
 		end)
 	end,
 })
+ToastBtn:SubButton({
+	Name = "Test Dialog",
+	Icon = "shield",
+	Callback = function()
+		Main:Dialog({
+			Title = "Enable Rage Mode?",
+			Content = "Rage features may trigger server-side heuristics. Do you want to proceed?",
+			ConfirmText = "Enable",
+			Risky = true,
+			Callback = function()
+				Hub:Notify({Title = "Rage Mode", Content = "Rage profile activated.", Type = "Warning"})
+			end,
+		})
+	end,
+})
+
+local SubBox = Combat:Tabbox({Side = "Right"})
+local TrigTab = SubBox:Tab("Triggerbot")
+local ResTab = SubBox:Tab("Prediction")
+
+local TrigToggle = TrigTab:Toggle({
+	Name = "Auto Trigger",
+	Description = "Fires automatically when crosshair is on target",
+	Flag = "TriggerEnabled",
+})
+TrigToggle:Bind({Default = Enum.KeyCode.T, Mode = "Hold", Flag = "TriggerBind"})
+
+TrigTab:Slider({
+	Name = "Reaction Delay",
+	Min = 0,
+	Max = 250,
+	Increment = 5,
+	Default = 35,
+	Suffix = "ms",
+	Flag = "TriggerDelay",
+})
+
+ResTab:Toggle({
+	Name = "Movement Prediction",
+	Description = "Compensate for target velocity",
+	Default = true,
+	Flag = "AimPredict",
+})
+
+ResTab:Slider({
+	Name = "Prediction Factor",
+	Min = 0.05,
+	Max = 0.35,
+	Increment = 0.01,
+	Default = 0.14,
+	Suffix = "s",
+	Flag = "AimPredictFactor",
+})
 
 Main:Category("Visuals")
 
 local Visuals = Main:Tab({Name = "ESP", Icon = "eye"})
 
-local PlayerESP = Visuals:Section({Name = "Players", Icon = "user", Side = "Left"})
+local PlayerESP = Visuals:Section({
+	Name = "Players",
+	Description = "Bounding boxes, nametags & chams",
+	Icon = "user",
+	Side = "Left",
+})
 
 local BoxESP = PlayerESP:Toggle({
 	Name = "Bounding Box",
@@ -150,7 +247,12 @@ PlayerESP:Slider({
 	Flag = "ESPDistance",
 })
 
-local World = Visuals:Section({Name = "World", Icon = "globe", Side = "Right"})
+local World = Visuals:Section({
+	Name = "World",
+	Description = "Atmosphere & lighting modulation",
+	Icon = "globe",
+	Side = "Right",
+})
 
 World:Paragraph({
 	Name = "Environment Modulation",
@@ -171,3 +273,4 @@ World:Slider({
 })
 
 Hub:Settings(Main)
+Lumen:LoadAutoloadConfig()
