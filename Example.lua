@@ -1,4 +1,4 @@
-local Lumen = loadstring(readfile("Lumen.lua"))()
+local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan/lumen-ui/refs/heads/main/Lumen.lua"))()
 
 local Hub = Lumen:Taskbar({
 	Name = "Lumen Hub",
