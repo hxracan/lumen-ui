@@ -1,8 +1,8 @@
 local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan/lumen-ui/refs/heads/main/Lumen.lua"))()
 
 local Hub = Lumen.new({
-	Name = "Senaniance",
-	Sub = "loading..",
+	Name = "Lumen UI library",
+	Sub = "Currently Loading..",
 	Key = Enum.KeyCode.RightShift,
 	Theme = "Carbon",
 	Watermark = true,
