@@ -2894,6 +2894,11 @@ function Elements:Slider(o)
 		suffix = s or ""
 		render(true)
 	end
+	function obj:Display()
+		min = self.Min or min
+		max = self.Max or max
+		render(true)
+	end
 
 	local function grow()
 		tween(knob, {Size = (dragging or hovering) and UDim2.fromOffset(15, 15) or UDim2.fromOffset(12, 12)}, 0.16, Enum.EasingStyle.Back)
@@ -3109,7 +3114,7 @@ function Elements:Dropdown(o)
 		local sel = selectedList()
 		local empty = (multi and #sel == 0) or (not multi and (obj.Value == nil or obj.Value == ""))
 		if empty then
-			shown.Text = o.NullText or o.Placeholder or "---"
+			shown.Text = o.NullText or o.Placeholder or "None"
 		elseif o.FormatDisplayValue then
 			local ok, custom = pcall(o.FormatDisplayValue, multi and sel or obj.Value)
 			shown.Text = (ok and custom ~= nil and tostring(custom) ~= "") and tostring(custom) or fmtItem(sel[1])
@@ -3365,6 +3370,12 @@ function Elements:Viewport(o)
 	obj.Type = "Viewport"
 	obj.Viewport = vp
 	obj.Camera = cam
+	obj.Height = h
+	function obj:SetHeight(newH)
+		h = tonumber(newH) or 180
+		self.Height = h
+		row.Size = UDim2.new(1, 0, 0, h)
+	end
 	function obj:SetObject(inst, cloneObj)
 		for _, c in vp:GetChildren() do
 			if not c:IsA("Camera") and not c:IsA("UICorner") then
@@ -3411,9 +3422,17 @@ function Elements:Image(o)
 	local obj = component(o, img.Image)
 	obj.Type = "Image"
 	obj.ImageLabel = img
+	obj.Image = img.Image
+	obj.Height = h
+	function obj:SetHeight(newH)
+		h = tonumber(newH) or 140
+		self.Height = h
+		row.Size = UDim2.new(1, 0, 0, h)
+	end
 	function obj:SetImage(val)
 		img.Image = resolveIcon(val) or tostring(val or "")
 		self.Value = img.Image
+		self.Image = img.Image
 	end
 	attachCommon(obj, row, nil, nil, o, self)
 	return obj
