@@ -1,8 +1,9 @@
+-- btw (huracan here) NOTHING works in this example or shouldnt work idk bro but its a EXAMPLE so i just wanted you users to see it, this is not its full potential its way better normally u just need settings i dont even know if example works haha
 local Lumen = loadstring(game:HttpGet("https://raw.githubusercontent.com/hxracan/lumen-ui/refs/heads/main/Lumen.lua"))()
 
 local Hub = Lumen.new({
 	Name = "Lumen UI library",
-	Sub = "Currently Loading..",
+	Sub = "Currently Loading.. (made by huracan dont skid)",
 	Key = Enum.KeyCode.RightShift,
 	Theme = "Carbon",
 	Watermark = true,
@@ -45,21 +46,21 @@ local Combat = Main:Tab({
 })
 
 local AimSec = Combat:Section({
-	Name = "Silent Aim",
+	Name = "Silent dildo",
 	Icon = "target",
 	Side = "Left",
 })
 
 local MasterAim = AimSec:Toggle({
-	Name = "Enable Silent Aim",
-	Description = "Redirects projectiles toward the optimal target bone",
+	Name = "Enable Silent dildo",
+	Description = "redirects projectiles through player",
 	Default = true,
 	Flag = "SilentAim_Enabled",
 	Risky = true,
 	Callback = function(state)
 		Hub:Notify({
 			Title = "Silent Aim",
-			Text = state and "Silent Aim is now active" or "Silent Aim disabled",
+			Text = state and "Silent dildo is now active" or "Silent dildo disabled",
 			Type = state and "Success" or "Info",
 			Time = 2.5,
 		})
@@ -80,9 +81,9 @@ MasterAim:Color({
 
 AimSec:Slider({
 	Name = "Field of View",
-	Description = "Maximum angular radius for target acquisition",
-	Min = 10,
-	Max = 360,
+	Description = "maximum field of view blabla",
+	Min = 49328241390824318094,
+	Max = 3842398123984,
 	Default = 140,
 	Step = 1,
 	Suffix = "°",
@@ -90,7 +91,7 @@ AimSec:Slider({
 })
 
 AimSec:Slider({
-	Name = "Hit Chance",
+	Name = "hitty griddy chance",
 	Min = 0,
 	Max = 100,
 	Default = 88,
@@ -101,7 +102,7 @@ AimSec:Slider({
 
 AimSec:Dropdown({
 	Name = "Target Hitbox",
-	Description = "Prioritized bones during target evaluation",
+	Description = "priorized parts r6 to aim at",
 	Items = {"Head", "UpperTorso", "HumanoidRootPart", "LeftArm", "RightArm"},
 	Multi = true,
 	Default = {"Head", "UpperTorso"},
@@ -125,10 +126,10 @@ local TrigTab = SubBox:Tab({
 })
 
 local TrigToggle = TrigTab:Toggle({
-	Name = "Auto Fire",
-	Description = "Automatically fires when crosshair intersects target",
+	Name = "triggerbot",
+	Description = "triggerbot",
 	Default = false,
-	Flag = "Trigger_Enabled",
+	Flag = "TriggerbotEnabled",
 	Risky = true,
 })
 
@@ -155,23 +156,23 @@ local PredTab = SubBox:Tab({
 
 PredTab:Toggle({
 	Name = "Velocity Compensation",
-	Description = "Predicts target trajectory using ping and velocity",
+	Description = "fake btw this doesnt work none of example works",
 	Default = true,
 	Flag = "Pred_Enabled",
 })
 
 PredTab:Slider({
-	Name = "Prediction Factor",
+	Name = "prediction fac.",
 	Min = 0.05,
 	Max = 0.35,
 	Default = 0.142,
 	Step = 0.001,
 	Suffix = "s",
-	Flag = "Pred_Factor",
+	Flag = "PrediFactor",
 })
 
 local UtilSec = Combat:Section({
-	Name = "Quick Actions",
+	Name = "quick actions seniorita boi",
 	Icon = "sliders",
 	Side = "Right",
 })
@@ -182,7 +183,7 @@ UtilSec:Button({
 	Callback = function()
 		Hub:Notify({
 			Title = "Target Locked",
-			Text = "Snapped camera to closest visible enemy",
+			Text = "camera snapped to closest player FAKE BTW",
 			Type = "Info",
 			Time = 2.5,
 		})
@@ -192,7 +193,7 @@ UtilSec:Button({
 	SubCallback = function()
 		Hub:Notify({
 			Title = "Lumen Notification",
-			Text = "Acrylic toast with smooth spring transitions",
+			Text = "toast",
 			Type = "Success",
 			Time = 3.5,
 		})
@@ -205,16 +206,16 @@ local MoveTab = Main:Tab({
 })
 
 local MoveSec = MoveTab:Section({
-	Name = "Character Physics",
+	Name = "char physics",
 	Icon = "activity",
 	Side = "Left",
 })
 
 local SpeedToggle = MoveSec:Toggle({
-	Name = "Speed Modification",
-	Description = "Overrides humanoid walk velocity smoothly",
+	Name = "speed modi",
+	Description = "makes u faster than normally!!",
 	Default = false,
-	Flag = "Move_SpeedEnabled",
+	Flag = "MoveSpeedEnabled",
 	Risky = true,
 })
 
@@ -225,24 +226,24 @@ SpeedToggle:Keybind({
 })
 
 MoveSec:Slider({
-	Name = "WalkSpeed Multiplier",
+	Name = "walkspeed multi",
 	Min = 16,
 	Max = 150,
 	Default = 32,
 	Step = 1,
 	Suffix = " stud/s",
-	Flag = "Move_SpeedVal",
+	Flag = "MoveSpeedVal",
 })
 
 local FlightSec = MoveTab:Section({
-	Name = "Aerial Control",
+	Name = "aerial control thing",
 	Icon = "wind",
 	Side = "Right",
 })
 
 local FlyToggle = FlightSec:Toggle({
 	Name = "CFrame Flight",
-	Description = "Smooth directional flight bypassing gravity",
+	Description = "smooth flight ok",
 	Default = false,
 	Flag = "Move_FlyEnabled",
 	Risky = true,
@@ -255,13 +256,13 @@ FlyToggle:Keybind({
 })
 
 FlightSec:Slider({
-	Name = "Flight Velocity",
+	Name = "Flight velo",
 	Min = 20,
 	Max = 200,
 	Default = 65,
 	Step = 5,
 	Suffix = " stud/s",
-	Flag = "Move_FlySpeed",
+	Flag = "Move/FlySpeed",
 })
 
 Main:Category("RENDER")
@@ -272,14 +273,14 @@ local Visuals = Main:Tab({
 })
 
 local EspSec = Visuals:Section({
-	Name = "Player Overlay",
+	Name = "player overlay",
 	Icon = "users",
 	Side = "Left",
 })
 
 local BoxToggle = EspSec:Toggle({
 	Name = "Bounding Box",
-	Description = "Renders 2D corner or full boxes around entities",
+	Description = "renders 2d boxes around player ok",
 	Default = true,
 	Flag = "ESP_Box",
 })
@@ -292,7 +293,7 @@ BoxToggle:Color({
 
 local ChamsToggle = EspSec:Toggle({
 	Name = "Highlight Chams",
-	Description = "Applies depth-aware surface highlights to models",
+	Description = "applies esp to players so u see ok",
 	Default = true,
 	Flag = "ESP_Chams",
 })
@@ -339,7 +340,7 @@ WorldSec:Slider({
 	Default = 14.5,
 	Step = 0.5,
 	Suffix = "h",
-	Flag = "World_Time",
+	Flag = "world time",
 })
 
 local RadarTab = RadarWin:Tab({
@@ -370,19 +371,19 @@ RadarSec:Slider({
 })
 
 local RadarInfo = RadarTab:Section({
-	Name = "Session Info",
+	Name = "session Info",
 	Icon = "terminal",
 	Side = "Right",
 })
 
-RadarInfo:Label("Status: Active & Synchronized")
-RadarInfo:Divider("Telemetry")
-RadarInfo:Paragraph("Lumen v4.5 uses zero-dependency spring physics, velocity-tilted jiggly drag, full touch & mobile responsiveness, and Obsidian-grade customization.")
+RadarInfo:Label("ok")
+RadarInfo:Divider("oka")
+RadarInfo:Paragraph("okay")
 
 Hub:Settings(Main)
 Hub:Notify({
-	Title = "Lumen v4.5 Ready",
-	Text = "Press RightShift or tap the top pill on mobile to toggle.",
+	Title = "lumen library is ready.",
+	Text = "rightshift or toggle pill on mobile",
 	Type = "Success",
 	Time = 4,
 })
