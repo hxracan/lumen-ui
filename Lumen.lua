@@ -1448,10 +1448,17 @@ local function component(o, default, callback, isToggle)
 	function obj:RunChanged()
 		self:Fire(false)
 	end
+	local settingVal = false
 	function obj:SetValue(v, silent, ...)
-		if self.Set then
-			self:Set(v, silent, ...)
+		if settingVal then
+			return
 		end
+		settingVal = true
+		local fn = self.Set
+		if fn and fn ~= self.SetValue then
+			fn(self, v, silent, ...)
+		end
+		settingVal = false
 	end
 	registerFlag(o.Flag, obj, isToggle)
 	return obj
@@ -1526,7 +1533,7 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 		end
 	end
 
-	function kb:Set(k, silent, newMode)
+	local function setKey(k, silent, newMode)
 		local mods
 		if type(k) == "table" then
 			newMode = k[2] or newMode
@@ -1534,23 +1541,25 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 			k = k[1]
 		end
 		if type(mods) == "table" then
-			self.Modifiers = table.clone(mods)
+			kb.Modifiers = table.clone(mods)
 		end
 		if newMode then
-			self.Mode = newMode
+			kb.Mode = newMode
 			if newMode == "Always" then
-				self.State = true
-				self.Toggled = true
+				kb.State = true
+				kb.Toggled = true
 			end
 		end
 		local parsed = k ~= nil and parseKey(k) or UNKNOWN
-		self.EnumValue = parsed
-		self.Value = isObsidian and keyString(parsed) or parsed
-		self.Listening = false
+		kb.EnumValue = parsed
+		kb.Value = isObsidian and keyString(parsed) or parsed
+		kb.Listening = false
 		Lumen.Listening = false
 		refresh()
-		self:Fire(silent, self.Mode)
+		kb:Fire(silent, kb.Mode)
 	end
+	kb.Set = setKey
+	kb.SetValue = setKey
 
 	function kb:GetState()
 		if self.Mode == "Always" then
@@ -1772,20 +1781,22 @@ local function makeColor(parent, o)
 		end
 	end
 
-	function cp:Set(color, silent, newAlpha)
+	local function setColor(color, silent, newAlpha)
 		if typeof(color) == "Color3" then
 			h, s, v = color:ToHSV()
 		end
 		if newAlpha ~= nil then
 			alpha = math.clamp(newAlpha, 0, 1)
-		elseif self.Transparency ~= alpha then
-			alpha = math.clamp(tonumber(self.Transparency) or 0, 0, 1)
+		elseif cp.Transparency ~= alpha then
+			alpha = math.clamp(tonumber(cp.Transparency) or 0, 0, 1)
 		end
 		commit(silent)
 	end
+	cp.Set = setColor
+	cp.SetValue = setColor
 
 	function cp:SetValueRGB(color, newAlpha)
-		self:Set(color, false, newAlpha)
+		setColor(color, false, newAlpha)
 	end
 
 	swatch.Activated:Connect(function()
@@ -2247,7 +2258,7 @@ local function build(section, o, height, topAnchored)
 		Size = UDim2.fromOffset(0, 26),
 		AutomaticSize = Enum.AutomaticSize.X,
 		BackgroundTransparency = 1,
-		ZIndex = 2,
+		ZIndex = 3,
 	}, {list(6, {
 		FillDirection = Enum.FillDirection.Horizontal,
 		HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -2742,7 +2753,7 @@ function Elements:Toggle(o)
 	obj.Type = "Toggle"
 	local row, title, right, desc = build(self, o)
 	local click = hit(row)
-	click.ZIndex = 1
+	click.ZIndex = 2
 
 	local forceCheck = o.Checkbox == true
 	local trackStroke = stroke("Stroke", 1, 0.35)
@@ -2823,11 +2834,13 @@ function Elements:Toggle(o)
 		return render(true)
 	end)
 
-	function obj:Set(v, silent)
-		self.Value = v == true
+	local function setToggle(v, silent)
+		obj.Value = v == true
 		render(true)
-		self:Fire(silent)
+		obj:Fire(silent)
 	end
+	obj.Set = setToggle
+	obj.SetValue = setToggle
 
 	local toggling = false
 	local function doToggle()
@@ -2849,16 +2862,14 @@ function Elements:Toggle(o)
 			tween(knob, {Size = UDim2.fromOffset(18, 14), Position = place_(obj.Value, 18)}, 0.08)
 		end
 	end
-	local function onUp()
+	local function onLeave()
 		render(true)
 	end
 
 	click.MouseButton1Down:Connect(onDown)
 	track.MouseButton1Down:Connect(onDown)
-	click.MouseButton1Up:Connect(onUp)
-	track.MouseButton1Up:Connect(onUp)
-	click.MouseLeave:Connect(onUp)
-	track.MouseLeave:Connect(onUp)
+	click.MouseLeave:Connect(onLeave)
+	track.MouseLeave:Connect(onLeave)
 
 	click.Activated:Connect(doToggle)
 	click.MouseButton1Click:Connect(doToggle)
@@ -2986,9 +2997,11 @@ function Elements:Slider(o)
 		end
 	end
 
-	function obj:Set(v, silent)
+	local function setSlider(v, silent)
 		set(v, silent)
 	end
+	obj.Set = setSlider
+	obj.SetValue = setSlider
 	function obj:SetMin(newMin)
 		min = newMin
 		self.Min = newMin
@@ -3249,11 +3262,13 @@ function Elements:Dropdown(o)
 	end
 	onTheme(render)
 
-	function obj:Set(v, silent)
-		self.Value = normalizeMulti(v)
+	local function setDropdown(v, silent)
+		obj.Value = normalizeMulti(v)
 		render()
-		self:Fire(silent)
+		obj:Fire(silent)
 	end
+	obj.Set = setDropdown
+	obj.SetValue = setDropdown
 
 	function obj:Refresh()
 		if specialType then
@@ -3424,11 +3439,13 @@ function Elements:Input(o)
 			obj:Fire()
 		end
 	end)
-	function obj:Set(v, silent)
-		self.Value = tostring(v or "")
-		box.Text = self.Value
-		self:Fire(silent)
+	local function setInput(v, silent)
+		obj.Value = tostring(v or "")
+		box.Text = obj.Value
+		obj:Fire(silent)
 	end
+	obj.Set = setInput
+	obj.SetValue = setInput
 	attachCommon(obj, row, title, desc, o, self)
 	return obj
 end
@@ -4997,6 +5014,13 @@ function Window:Tab(o, iconName, description)
 	return tab
 end
 Window.AddTab = Window.Tab
+Window.CreateTab = Window.Tab
+
+function Lumen:QueueResize(owner, callback)
+	if callback then
+		task.spawn(callback)
+	end
+end
 
 function Hub:Window(o)
 	o = o or {}
@@ -8416,8 +8440,8 @@ function Lumen:CreateWindow(o)
 			local clean = tostring(t.Name or ""):gsub("<[^>]+>", ""):lower():gsub("^2%s+", ""):match("^%s*(.-)%s*$")
 			if clean == "ui settings" or clean == "settings" then
 				local glassSec = t:Section({
-					Name = "Settings",
-					Description = "blur, toggle pill for mobile/pc n more",
+					Name = "Lumen Glass, Blur & Dock",
+					Description = "World blur, acrylic glass transparency & bottom dock",
 					Icon = "sparkles",
 					Side = "Right",
 				})
@@ -8551,7 +8575,7 @@ function Lumen:Taskbar(o)
 	end
 	local hub = setmetatable({
 		Name = o.Name or "Lumen",
-		Description = o.Description or o.Sub or "ok",
+		Description = o.Description or o.Sub or "Universal Suite",
 		IconName = o.Icon or "layers",
 		Windows = {},
 		Entries = {},
