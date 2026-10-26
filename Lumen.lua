@@ -1533,30 +1533,36 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 		end
 	end
 
-	local function setKey(k, silent, newMode)
+	local function setKey(selfOrK, k, silent, newMode)
+		if selfOrK == kb then
+			selfOrK, k, silent = k, silent, newMode
+		end
+		local raw = selfOrK
+		local isSilent = k
+		local modeArg = silent
 		local mods
-		if type(k) == "table" then
-			newMode = k[2] or newMode
-			mods = k[3]
-			k = k[1]
+		if type(raw) == "table" then
+			modeArg = raw[2] or modeArg
+			mods = raw[3]
+			raw = raw[1]
 		end
 		if type(mods) == "table" then
 			kb.Modifiers = table.clone(mods)
 		end
-		if newMode then
-			kb.Mode = newMode
-			if newMode == "Always" then
+		if modeArg then
+			kb.Mode = modeArg
+			if modeArg == "Always" then
 				kb.State = true
 				kb.Toggled = true
 			end
 		end
-		local parsed = k ~= nil and parseKey(k) or UNKNOWN
+		local parsed = raw ~= nil and parseKey(raw) or UNKNOWN
 		kb.EnumValue = parsed
 		kb.Value = isObsidian and keyString(parsed) or parsed
 		kb.Listening = false
 		Lumen.Listening = false
 		refresh()
-		kb:Fire(silent, kb.Mode)
+		kb:Fire(isSilent, kb.Mode)
 	end
 	kb.Set = setKey
 	kb.SetValue = setKey
@@ -1781,16 +1787,22 @@ local function makeColor(parent, o)
 		end
 	end
 
-	local function setColor(color, silent, newAlpha)
-		if typeof(color) == "Color3" then
-			h, s, v = color:ToHSV()
+	local function setColor(selfOrColor, color, silent, newAlpha)
+		if selfOrColor == cp then
+			selfOrColor, color, silent = color, silent, newAlpha
 		end
-		if newAlpha ~= nil then
-			alpha = math.clamp(newAlpha, 0, 1)
+		local col = selfOrColor
+		local isSilent = color
+		local a = silent
+		if typeof(col) == "Color3" then
+			h, s, v = col:ToHSV()
+		end
+		if a ~= nil then
+			alpha = math.clamp(a, 0, 1)
 		elseif cp.Transparency ~= alpha then
 			alpha = math.clamp(tonumber(cp.Transparency) or 0, 0, 1)
 		end
-		commit(silent)
+		commit(isSilent)
 	end
 	cp.Set = setColor
 	cp.SetValue = setColor
@@ -2834,10 +2846,13 @@ function Elements:Toggle(o)
 		return render(true)
 	end)
 
-	local function setToggle(v, silent)
-		obj.Value = v == true
+	local function setToggle(selfOrV, v, silent)
+		if selfOrV == obj then
+			selfOrV, v = v, silent
+		end
+		obj.Value = selfOrV == true
 		render(true)
-		obj:Fire(silent)
+		obj:Fire(v)
 	end
 	obj.Set = setToggle
 	obj.SetValue = setToggle
@@ -2997,8 +3012,11 @@ function Elements:Slider(o)
 		end
 	end
 
-	local function setSlider(v, silent)
-		set(v, silent)
+	local function setSlider(selfOrV, v, silent)
+		if selfOrV == obj then
+			selfOrV, v = v, silent
+		end
+		set(selfOrV, v)
 	end
 	obj.Set = setSlider
 	obj.SetValue = setSlider
@@ -3262,10 +3280,13 @@ function Elements:Dropdown(o)
 	end
 	onTheme(render)
 
-	local function setDropdown(v, silent)
-		obj.Value = normalizeMulti(v)
+	local function setDropdown(selfOrV, v, silent)
+		if selfOrV == obj then
+			selfOrV, v = v, silent
+		end
+		obj.Value = normalizeMulti(selfOrV)
 		render()
-		obj:Fire(silent)
+		obj:Fire(v)
 	end
 	obj.Set = setDropdown
 	obj.SetValue = setDropdown
@@ -3439,10 +3460,13 @@ function Elements:Input(o)
 			obj:Fire()
 		end
 	end)
-	local function setInput(v, silent)
-		obj.Value = tostring(v or "")
+	local function setInput(selfOrV, v, silent)
+		if selfOrV == obj then
+			selfOrV, v = v, silent
+		end
+		obj.Value = tostring(selfOrV or "")
 		box.Text = obj.Value
-		obj:Fire(silent)
+		obj:Fire(v)
 	end
 	obj.Set = setInput
 	obj.SetValue = setInput
