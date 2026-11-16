@@ -51,33 +51,33 @@ local Lumen = {
 	},
 	IgnoreThemeInConfig = true,
 	Folder = "Lumen",
-	Version = "4.5",
+	Version = "5.0",
 	Config = {
-		Transparency = 0.16,
+		Transparency = 0.12,
 		Scale = 1,
 		CornerRadius = 12,
 		CompactSidebar = false,
-		SidebarWidth = 216,
+		SidebarWidth = 210,
 		TopAccentLine = true,
 		AmbientGlow = true,
-		AmbientGlowAlpha = 0.87,
+		AmbientGlowAlpha = 0.89,
 		CardHoverGlow = true,
 		ToggleStyle = "Switch",
 		CustomCursor = false,
 		MobileButton = isMobile,
-		Snapping = true,
+		Snapping = false,
 		SnapDistance = 24,
 		BackgroundImage = "",
 		BackgroundImageAlpha = 0.82,
 		BackgroundScale = "Crop",
-		Blur = true,
+		Blur = false,
 		BlurSize = 14,
 		UnlockMouse = false,
 		WindowAnimStyle = "Scale & Slide",
-		WindowAnimSpeed = 0.38,
+		WindowAnimSpeed = 0.32,
 		TabAnimStyle = "Slide Bottom",
-		TabAnimSpeed = 0.28,
-		TabSwipeOffset = 18,
+		TabAnimSpeed = 0.24,
+		TabSwipeOffset = 14,
 		Animations = {
 			["Window Toggle"] = true,
 			["Tab Switch"] = true,
@@ -136,29 +136,29 @@ end
 
 local Themes = {
 	Midnight = makePalette(
-		rgb(11, 11, 15), rgb(14, 14, 19), rgb(18, 18, 24), rgb(26, 26, 35),
-		rgb(35, 35, 46), rgb(39, 39, 52), rgb(240, 240, 247), rgb(130, 130, 148),
-		rgb(124, 92, 255)
+		rgb(9, 10, 15), rgb(12, 13, 20), rgb(16, 18, 26), rgb(22, 25, 36),
+		rgb(30, 34, 48), rgb(40, 45, 64), rgb(244, 246, 255), rgb(134, 142, 168),
+		rgb(132, 94, 255)
 	),
 	Neverlose = makePalette(
-		rgb(7, 10, 20), rgb(9, 14, 27), rgb(12, 18, 34), rgb(19, 27, 49),
-		rgb(27, 37, 65), rgb(29, 41, 72), rgb(235, 241, 255), rgb(115, 132, 174),
-		rgb(41, 148, 255)
+		rgb(6, 9, 18), rgb(9, 13, 25), rgb(12, 18, 33), rgb(18, 26, 47),
+		rgb(25, 36, 63), rgb(32, 46, 78), rgb(238, 244, 255), rgb(120, 138, 180),
+		rgb(45, 156, 255)
 	),
 	Obsidian = makePalette(
-		rgb(12, 12, 14), rgb(16, 16, 18), rgb(21, 21, 24), rgb(29, 29, 33),
-		rgb(38, 38, 44), rgb(44, 44, 51), rgb(244, 244, 246), rgb(134, 134, 144),
-		rgb(125, 85, 255)
+		rgb(10, 10, 13), rgb(14, 14, 18), rgb(18, 19, 24), rgb(25, 26, 33),
+		rgb(34, 35, 44), rgb(44, 46, 58), rgb(246, 246, 250), rgb(138, 140, 156),
+		rgb(134, 92, 255)
 	),
 	Onyx = makePalette(
-		rgb(8, 8, 11), rgb(11, 11, 15), rgb(15, 15, 20), rgb(22, 22, 29),
-		rgb(30, 30, 40), rgb(36, 36, 48), rgb(245, 245, 250), rgb(135, 135, 150),
-		rgb(148, 112, 255)
+		rgb(7, 7, 10), rgb(10, 10, 15), rgb(14, 15, 21), rgb(20, 22, 30),
+		rgb(28, 30, 42), rgb(38, 41, 56), rgb(246, 247, 252), rgb(136, 139, 158),
+		rgb(152, 114, 255)
 	),
 	Vanta = makePalette(
-		rgb(4, 4, 6), rgb(7, 7, 10), rgb(10, 10, 14), rgb(16, 16, 22),
-		rgb(24, 24, 32), rgb(28, 28, 38), rgb(248, 248, 252), rgb(126, 126, 142),
-		rgb(139, 92, 246)
+		rgb(4, 4, 6), rgb(7, 7, 10), rgb(11, 11, 16), rgb(17, 17, 24),
+		rgb(24, 25, 35), rgb(33, 35, 48), rgb(248, 248, 254), rgb(130, 132, 150),
+		rgb(144, 96, 255)
 	),
 	Aurora = makePalette(
 		rgb(8, 13, 18), rgb(11, 18, 25), rgb(15, 24, 33), rgb(22, 34, 46),
@@ -613,14 +613,34 @@ local function center(obj)
 end
 
 local function rim(parent)
-	local s = stroke("Stroke", 1, 0.08)
-	s.Parent = parent
+	local s = create("UIStroke", {
+		Parent = parent,
+		Thickness = 1,
+		Transparency = 0.06,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = WHITE,
+	})
+	local g = create("UIGradient", {
+		Parent = s,
+		Rotation = 90,
+	})
+	onTheme(function()
+		g.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, T.Stroke:Lerp(T.Accent, 0.42)),
+			ColorSequenceKeypoint.new(0.35, T.Stroke:Lerp(WHITE, 0.08)),
+			ColorSequenceKeypoint.new(1, T.Stroke),
+		})
+	end)
 	return s
 end
 
 local function accentGradient(grad)
 	onTheme(function()
-		grad.Color = ColorSequence.new(T.Accent:Lerp(WHITE, 0.18), T.Accent:Lerp(BLACK, 0.18))
+		grad.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, T.Accent:Lerp(WHITE, 0.26)),
+			ColorSequenceKeypoint.new(0.52, T.Accent),
+			ColorSequenceKeypoint.new(1, T.Accent:Lerp(rgb(56, 189, 248), 0.28)),
+		})
 	end)
 end
 
@@ -908,25 +928,6 @@ local function inside(frame, pos)
 	return pos.X >= p.X and pos.X <= p.X + s.X and pos.Y >= p.Y and pos.Y <= p.Y + s.Y
 end
 
-local snapV = create("Frame", {
-	Parent = Layers.Snap,
-	AnchorPoint = Vector2.new(0.5, 0),
-	Size = UDim2.new(0, 1, 1, 0),
-	BorderSizePixel = 0,
-	BackgroundTransparency = 0.35,
-	Visible = false,
-	Theme = {BackgroundColor3 = "Accent"},
-})
-local snapH = create("Frame", {
-	Parent = Layers.Snap,
-	AnchorPoint = Vector2.new(0, 0.5),
-	Size = UDim2.new(1, 0, 0, 1),
-	BorderSizePixel = 0,
-	BackgroundTransparency = 0.35,
-	Visible = false,
-	Theme = {BackgroundColor3 = "Accent"},
-})
-
 local cursorFrame = create("Frame", {
 	Parent = Layers.Tip,
 	AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1017,7 +1018,6 @@ local function drag(handle, target, onEnd, snapEnabled)
 			local a = target.AnchorPoint
 			local x = startPos.X.Scale * view.X + startPos.X.Offset + d.X
 			local y = startPos.Y.Scale * view.Y + startPos.Y.Offset + d.Y
-			local showV, showH = false, false
 			if snapEnabled and Lumen.Config.Snapping then
 				local dist = Lumen.Config.SnapDistance or 24
 				local cx, cy = view.X * 0.5, view.Y * 0.5
@@ -1025,29 +1025,17 @@ local function drag(handle, target, onEnd, snapEnabled)
 				local curCy = y + (0.5 - a.Y) * s.Y
 				if math.abs(curCx - cx) <= dist then
 					x = cx - (0.5 - a.X) * s.X
-					snapV.Position = UDim2.fromOffset(cx, 0)
-					showV = true
 				elseif math.abs((x - s.X * a.X) - 12) <= dist then
 					x = 12 + s.X * a.X
-					snapV.Position = UDim2.fromOffset(12, 0)
-					showV = true
 				elseif math.abs((x + s.X * (1 - a.X)) - (view.X - 12)) <= dist then
 					x = view.X - 12 - s.X * (1 - a.X)
-					snapV.Position = UDim2.fromOffset(view.X - 12, 0)
-					showV = true
 				end
 				if math.abs(curCy - cy) <= dist then
 					y = cy - (0.5 - a.Y) * s.Y
-					snapH.Position = UDim2.fromOffset(0, cy)
-					showH = true
 				elseif math.abs((y - s.Y * a.Y) - 12) <= dist then
 					y = 12 + s.Y * a.Y
-					snapH.Position = UDim2.fromOffset(0, 12)
-					showH = true
 				end
 			end
-			snapV.Visible = showV
-			snapH.Visible = showH
 			x = math.clamp(x, s.X * a.X + 8 - s.X * 0.5, view.X - s.X * (1 - a.X) - 8 + s.X * 0.5)
 			y = math.clamp(y, s.Y * a.Y + 8, view.Y - s.Y * (1 - a.Y) - 8)
 			target.Position = UDim2.fromOffset(math.round(x), math.round(y))
@@ -1056,8 +1044,6 @@ local function drag(handle, target, onEnd, snapEnabled)
 	link(UIS.InputEnded, function(input)
 		if active and isPress(input) then
 			active = false
-			snapV.Visible = false
-			snapH.Visible = false
 			if onEnd then
 				onEnd(moved)
 			end
@@ -1068,20 +1054,24 @@ local function drag(handle, target, onEnd, snapEnabled)
 	end
 end
 
-local tipFrame = create("CanvasGroup", {
+local tipFrame = create("Frame", {
 	Parent = Layers.Tip,
 	AutomaticSize = Enum.AutomaticSize.XY,
-	GroupTransparency = 1,
+	BackgroundTransparency = 0.06,
+	BorderSizePixel = 0,
 	Visible = false,
+	ZIndex = 940,
 	Theme = {BackgroundColor3 = "Raised"},
-}, {corner(7), stroke("Stroke"), pad(5, 9)})
+}, {corner(7), stroke("Accent", 1, 0.55), pad(6, 10)})
 local tipScale = create("UIScale", {Parent = tipFrame, Scale = 0.92})
 local tipLabel = text({
 	Parent = tipFrame,
 	AutomaticSize = Enum.AutomaticSize.XY,
 	Size = UDim2.new(),
 	TextSize = 12,
+	FontFace = FONT_B,
 	TextTruncate = Enum.TextTruncate.None,
+	ZIndex = 941,
 })
 local tipOwner, tipToken = nil, 0
 
@@ -1089,17 +1079,15 @@ local function tooltip(target, content)
 	target.MouseEnter:Connect(function()
 		tipOwner = target
 		tipToken += 1
-		local id = tipToken
 		local str = type(content) == "function" and content() or content
 		if not str or str == "" then
+			tipFrame.Visible = false
 			return
 		end
 		tipLabel.Text = str
 		tipFrame.Visible = true
 		tipScale.Scale = 0.92
-		tween(tipFrame, {GroupTransparency = 0}, 0.14)
-		tween(tipScale, {Scale = 1}, 0.18, Enum.EasingStyle.Back)
-		local _ = id
+		tween(tipScale, {Scale = 1}, 0.16, Enum.EasingStyle.Back)
 	end)
 	target.MouseLeave:Connect(function()
 		if tipOwner ~= target then
@@ -1107,18 +1095,18 @@ local function tooltip(target, content)
 		end
 		tipOwner = nil
 		tipToken += 1
-		local id = tipToken
-		tween(tipFrame, {GroupTransparency = 1}, 0.12)
-		tween(tipScale, {Scale = 0.92}, 0.12)
-		task.delay(0.14, function()
-			if tipToken == id then
-				tipFrame.Visible = false
-			end
-		end)
+		tipFrame.Visible = false
 	end)
 end
 
 link(RS.RenderStepped, function()
+	local showCursor = Lumen.Config.CustomCursor and Lumen.Hub and Lumen.Hub.Visible
+	if not tipFrame.Visible and not showCursor then
+		if cursorFrame.Visible then
+			cursorFrame.Visible = false
+		end
+		return
+	end
 	local m = mouse()
 	if tipFrame.Visible then
 		local view = Gui.AbsoluteSize
@@ -1127,7 +1115,7 @@ link(RS.RenderStepped, function()
 		local y = math.clamp(m.Y + 18, 8, view.Y - s.Y - 8)
 		tipFrame.Position = UDim2.fromOffset(x, y)
 	end
-	if Lumen.Config.CustomCursor and Lumen.Hub and Lumen.Hub.Visible then
+	if showCursor then
 		local over = false
 		for _, w in Lumen.Hub.Windows do
 			if w.Shown and inside(w.Root, m) then
@@ -1139,7 +1127,7 @@ link(RS.RenderStepped, function()
 		if over then
 			cursorFrame.Position = UDim2.fromOffset(m.X, m.Y)
 		end
-	else
+	elseif cursorFrame.Visible then
 		cursorFrame.Visible = false
 	end
 end)
@@ -1181,19 +1169,21 @@ local function placePopup(card, anchor, width, alignRight, gap)
 end
 
 local function openMenu(anchor, opts)
-	local width = math.max(opts.Width or anchor.AbsoluteSize.X, 152)
+	local width = math.max(opts.Width or anchor.AbsoluteSize.X, 156)
 	local values = opts.Values or {}
 	local searchable = opts.Search
 	if searchable == nil then
 		searchable = #values > 6
 	end
-	local card = create("CanvasGroup", {
+	local card = create("Frame", {
 		Parent = Layers.Popups,
 		Size = UDim2.fromOffset(width, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		GroupTransparency = 1,
-		Theme = {BackgroundColor3 = "Raised"},
-	}, {corner(10), stroke("Stroke"), pad(5), list(2)})
+		BackgroundTransparency = 0.04,
+		BorderSizePixel = 0,
+		Theme = {BackgroundColor3 = "Panel"},
+	}, {corner(10), pad(5), list(2)})
+	rim(card)
 	local scale = create("UIScale", {Parent = card, Scale = 0.95})
 
 	local searchBox
@@ -1202,7 +1192,7 @@ local function openMenu(anchor, opts)
 			Parent = card,
 			Size = UDim2.new(1, 0, 0, 28),
 			LayoutOrder = 1,
-			Theme = {BackgroundColor3 = "Panel"},
+			Theme = {BackgroundColor3 = "Raised"},
 		}, {corner(7), stroke("Stroke")})
 		local sIcon = icon(holder, "search", 13, "Muted")
 		sIcon.AnchorPoint = Vector2.new(0, 0.5)
@@ -1231,7 +1221,7 @@ local function openMenu(anchor, opts)
 		CanvasSize = UDim2.new(),
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 2,
-		Theme = {ScrollBarImageColor3 = "Stroke"},
+		Theme = {ScrollBarImageColor3 = "Accent"},
 	}, {list(2)})
 
 	local rows = {}
@@ -1242,7 +1232,7 @@ local function openMenu(anchor, opts)
 				visible += 1
 			end
 		end
-		scroll.Size = UDim2.new(1, 0, 0, math.min(visible * 30 - math.max(0, visible - 1) * 2, 196))
+		scroll.Size = UDim2.new(1, 0, 0, math.min(visible * 30 - math.max(0, visible - 1) * 2, 204))
 	end
 
 	local function refreshRows(animate)
@@ -1250,11 +1240,12 @@ local function openMenu(anchor, opts)
 			local disabled = opts.DisabledValues and (opts.DisabledValues[r.Value] == true or table.find(opts.DisabledValues, r.Value) ~= nil)
 			local on = not disabled and opts.Selected(r.Value)
 			apply(r.Label, {
-				Position = UDim2.fromOffset(on and 28 or 10, 0),
+				Position = UDim2.fromOffset(on and 28 or 11, 0),
 				TextColor3 = disabled and T.Stroke or (on and T.Text or T.Muted),
 			}, animate, 0.16, "Dropdown Menu")
 			apply(r.Check, {ImageTransparency = on and 0 or 1}, animate, 0.16, "Dropdown Menu")
-			apply(r.Button, {BackgroundTransparency = on and 0.88 or (r.Hover and not disabled and 0.45 or 1)}, animate, 0.16, "Dropdown Menu")
+			apply(r.Bar, {BackgroundTransparency = on and 0 or 1, Size = UDim2.fromOffset(2, on and 14 or 4)}, animate, 0.16, "Dropdown Menu")
+			apply(r.Button, {BackgroundTransparency = on and 0.84 or (r.Hover and not disabled and 0.45 or 1)}, animate, 0.16, "Dropdown Menu")
 			r.Button.BackgroundColor3 = on and T.Accent or T.Hover
 		end
 	end
@@ -1269,18 +1260,27 @@ local function openMenu(anchor, opts)
 			AutoButtonColor = false,
 			LayoutOrder = idx,
 		}, {corner(7)})
+		local bar = create("Frame", {
+			Parent = btn,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 2, 0.5, 0),
+			Size = UDim2.fromOffset(2, 4),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Theme = {BackgroundColor3 = "Accent"},
+		}, {corner(PILL)})
 		local chk = icon(btn, "check", 13, "Accent")
 		chk.AnchorPoint = Vector2.new(0, 0.5)
-		chk.Position = UDim2.new(0, 9, 0.5, 0)
+		chk.Position = UDim2.new(0, 10, 0.5, 0)
 		chk.ImageTransparency = 1
 		local lbl = text({
 			Parent = btn,
 			Text = display,
-			Position = UDim2.fromOffset(10, 0),
+			Position = UDim2.fromOffset(11, 0),
 			Size = UDim2.new(1, -18, 1, 0),
 			TextSize = 12,
 		})
-		local row = {Value = v, Name = display:lower(), Button = btn, Check = chk, Label = lbl, Hover = false}
+		local row = {Value = v, Name = display:lower(), Button = btn, Bar = bar, Check = chk, Label = lbl, Hover = false}
 		table.insert(rows, row)
 		btn.MouseEnter:Connect(function()
 			local disabled = opts.DisabledValues and (opts.DisabledValues[v] == true or table.find(opts.DisabledValues, v) ~= nil)
@@ -1331,22 +1331,13 @@ local function openMenu(anchor, opts)
 		placePopup(card, anchor, width, opts.Right, 6)
 	end)
 
-	tween(card, {GroupTransparency = 0}, 0.18, nil, nil, "Dropdown Menu")
-	tween(scale, {Scale = 1}, 0.22, Enum.EasingStyle.Back, nil, "Dropdown Menu")
+	tween(scale, {Scale = 1}, 0.2, Enum.EasingStyle.Back, nil, "Dropdown Menu")
 
 	openPopup({card, anchor}, function()
 		if opts.OnClose then
 			opts.OnClose()
 		end
-		if animEnabled("Dropdown Menu") then
-			tween(card, {GroupTransparency = 1}, 0.14)
-			tween(scale, {Scale = 0.95}, 0.14)
-			task.delay(0.15, function()
-				card:Destroy()
-			end)
-		else
-			card:Destroy()
-		end
+		card:Destroy()
 	end, opts.Owner or anchor)
 end
 
@@ -1503,13 +1494,16 @@ local function makeBind(parent, o, trigger, labelText, activeFn, toggleTarget)
 
 	local function refresh()
 		if kb.Listening then
-			chip.Text = "..."
+			chip.Text = "[ ... ]"
 			chip.TextColor3 = T.Accent
+			chip.BackgroundColor3 = T.Hover
 			ring.Color = T.Accent
 		else
+			local bound = kb.Mode == "Always" or (kb.EnumValue and kb.EnumValue ~= UNKNOWN)
 			chip.Text = kb.Mode == "Always" and "Always" or keyName(kb.EnumValue)
-			chip.TextColor3 = T.Muted
-			ring.Color = T.Stroke
+			chip.TextColor3 = bound and T.Text or T.Muted
+			chip.BackgroundColor3 = T.Raised
+			ring.Color = bound and T.Stroke:Lerp(T.Accent, 0.35) or T.Stroke
 		end
 	end
 	onTheme(refresh)
@@ -1764,7 +1758,16 @@ local function makeColor(parent, o)
 		BackgroundColor3 = default,
 		AutoButtonColor = false,
 		Text = "",
-	}, {corner(6), stroke("Stroke")})
+		ClipsDescendants = true,
+	}, {corner(6), stroke("Stroke", 1, 0.1)})
+	create("Frame", {
+		Parent = swatch,
+		Size = UDim2.new(1, 0, 0.5, 0),
+		BackgroundColor3 = WHITE,
+		BackgroundTransparency = 0.84,
+		BorderSizePixel = 0,
+		Active = false,
+	})
 	cp.DisplayFrame = swatch
 
 	local syncPopover
@@ -1817,12 +1820,14 @@ local function makeColor(parent, o)
 			return
 		end
 		local width = 236
-		local card = create("CanvasGroup", {
+		local card = create("Frame", {
 			Parent = Layers.Popups,
 			Size = UDim2.fromOffset(width, 294),
-			GroupTransparency = 1,
-			Theme = {BackgroundColor3 = "Raised"},
-		}, {corner(12), stroke("Stroke"), pad(10)})
+			BackgroundTransparency = 0.03,
+			BorderSizePixel = 0,
+			Theme = {BackgroundColor3 = "Panel"},
+		}, {corner(12), pad(10)})
+		rim(card)
 		local scale = create("UIScale", {Parent = card, Scale = 0.94})
 
 		local sat = create("TextButton", {
@@ -2057,22 +2062,13 @@ local function makeColor(parent, o)
 		end)
 
 		placePopup(card, swatch, width, true, 6)
-		tween(card, {GroupTransparency = 0}, 0.18, nil, nil, "Popups")
-		tween(scale, {Scale = 1}, 0.22, Enum.EasingStyle.Back, nil, "Popups")
+		tween(scale, {Scale = 1}, 0.2, Enum.EasingStyle.Back, nil, "Popups")
 
 		openPopup({card, swatch}, function()
 			syncPopover = nil
 			c1:Disconnect()
 			c2:Disconnect()
-			if animEnabled("Popups") then
-				tween(card, {GroupTransparency = 1}, 0.14)
-				tween(scale, {Scale = 0.94}, 0.14)
-				task.delay(0.15, function()
-					card:Destroy()
-				end)
-			else
-				card:Destroy()
-			end
+			card:Destroy()
 		end, swatch)
 	end)
 
@@ -2234,11 +2230,23 @@ local function build(section, o, height, topAnchored)
 	}, {corner(8)})
 
 	if o.Hover ~= false then
+		local hoverBar = create("Frame", {
+			Parent = row,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 1, 0.5, 0),
+			Size = UDim2.fromOffset(2, 6),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Active = false,
+			Theme = {BackgroundColor3 = "Accent"},
+		}, {corner(PILL)})
 		row.MouseEnter:Connect(function()
-			apply(row, {BackgroundTransparency = 0.55}, true, 0.15, "Hover Effects")
+			apply(row, {BackgroundTransparency = 0.48}, true, 0.14, "Hover Effects")
+			apply(hoverBar, {BackgroundTransparency = 0.15, Size = UDim2.fromOffset(2, 16)}, true, 0.16, "Hover Effects")
 		end)
 		row.MouseLeave:Connect(function()
-			apply(row, {BackgroundTransparency = 1}, true, 0.2, "Hover Effects")
+			apply(row, {BackgroundTransparency = 1}, true, 0.18, "Hover Effects")
+			apply(hoverBar, {BackgroundTransparency = 1, Size = UDim2.fromOffset(2, 6)}, true, 0.18, "Hover Effects")
 		end)
 	end
 
@@ -2517,21 +2525,30 @@ end
 local function makeSingleButton(holder, o)
 	local primary = o.Style == "Primary"
 	local danger = o.Style == "Danger" or o.Risky == true
-	local btnStroke = stroke(primary and "Accent" or (danger and "Danger" or "Stroke"), 1, primary and 0.25 or 0.15)
+	local btnStroke = stroke(primary and "Accent" or (danger and "Danger" or "Stroke"), 1, primary and 0.2 or 0.12)
 	local b = create("TextButton", {
 		Parent = holder,
 		Size = UDim2.fromScale(1, 1),
 		AutoButtonColor = false,
 		Text = "",
 		ClipsDescendants = true,
-		BackgroundColor3 = primary and T.Accent or T.Raised,
+		BackgroundColor3 = primary and WHITE or T.Raised,
 	}, {corner(8), btnStroke})
+	local btnGrad = create("UIGradient", {Parent = b, Rotation = primary and 18 or 90})
+	if primary then
+		accentGradient(btnGrad)
+	else
+		onTheme(function()
+			btnGrad.Color = ColorSequence.new(WHITE, rgb(222, 226, 240))
+		end)
+	end
 	create("Frame", {
 		Parent = b,
 		Size = UDim2.new(1, 0, 0, 1),
 		BorderSizePixel = 0,
 		BackgroundColor3 = WHITE,
-		BackgroundTransparency = primary and 0.72 or 0.91,
+		BackgroundTransparency = primary and 0.68 or 0.89,
+		Active = false,
 	})
 	local scale = create("UIScale", {Parent = b})
 	local right = create("Frame", {
@@ -2581,11 +2598,11 @@ local function makeSingleButton(holder, o)
 
 	local hovered = false
 	local function render(animate)
-		local base = primary and T.Accent or T.Raised
-		local over = primary and T.Accent:Lerp(WHITE, 0.14) or T.Hover
-		local strokeCol = primary and T.Accent:Lerp(WHITE, 0.25) or (danger and T.Danger or (hovered and T.Stroke:Lerp(T.Accent, 0.55) or T.Stroke))
-		apply(b, {BackgroundColor3 = hovered and over or base}, animate, 0.15, "Hover Effects")
-		apply(btnStroke, {Color = strokeCol, Transparency = hovered and 0 or (primary and 0.25 or 0.15)}, animate, 0.15, "Hover Effects")
+		local base = primary and WHITE or T.Raised
+		local over = primary and WHITE or T.Hover
+		local strokeCol = primary and T.Accent:Lerp(WHITE, 0.35) or (danger and T.Danger or (hovered and T.Stroke:Lerp(T.Accent, 0.65) or T.Stroke))
+		apply(b, {BackgroundColor3 = hovered and over or base}, animate, 0.14, "Hover Effects")
+		apply(btnStroke, {Color = strokeCol, Transparency = hovered and 0 or (primary and 0.2 or 0.12)}, animate, 0.14, "Hover Effects")
 		label.TextColor3 = primary and WHITE or (danger and T.Danger or T.Text)
 		if ico and not primary then
 			ico.ImageColor3 = danger and T.Danger or (hovered and T.Accent or T.Text)
@@ -2811,10 +2828,14 @@ function Elements:Toggle(o)
 		local on = obj.Value
 		local checkMode = isCheckStyle()
 		trackGrad.Enabled = on
-		trackGrad.Color = ColorSequence.new(T.Accent:Lerp(WHITE, 0.22), T.Accent)
+		trackGrad.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, T.Accent:Lerp(WHITE, 0.24)),
+			ColorSequenceKeypoint.new(0.55, T.Accent),
+			ColorSequenceKeypoint.new(1, T.Accent:Lerp(rgb(56, 189, 248), 0.22)),
+		})
 		apply(trackStroke, {
-			Color = on and T.Accent:Lerp(WHITE, 0.3) or T.Stroke,
-			Transparency = on and 0.15 or 0.35,
+			Color = on and T.Accent:Lerp(WHITE, 0.35) or T.Stroke,
+			Transparency = on and 0.1 or 0.25,
 		}, animate, 0.18)
 		if checkMode then
 			trackCorner.CornerRadius = UDim.new(0, 6)
@@ -2831,13 +2852,13 @@ function Elements:Toggle(o)
 			checkIcon.Visible = false
 			apply(track, {
 				Size = UDim2.fromOffset(38, 20),
-				BackgroundColor3 = on and WHITE or T.Hover,
+				BackgroundColor3 = on and WHITE or T.Raised,
 			}, animate, 0.18)
 			apply(knob, {
 				Position = place_(on, 14),
 				Size = UDim2.fromOffset(14, 14),
-				BackgroundColor3 = on and WHITE or T.Muted,
-			}, animate, 0.24)
+				BackgroundColor3 = on and WHITE or T.Muted:Lerp(WHITE, 0.18),
+			}, animate, 0.22)
 		end
 		return true
 	end
@@ -2950,9 +2971,9 @@ function Elements:Slider(o)
 	local track = create("Frame", {
 		Parent = row,
 		Position = UDim2.fromOffset(10, trackY),
-		Size = UDim2.new(1, -20, 0, 6),
-		Theme = {BackgroundColor3 = "Hover"},
-	}, {corner(PILL), stroke("Stroke", 1, 0.55)})
+		Size = UDim2.new(1, -20, 0, 7),
+		Theme = {BackgroundColor3 = "Raised"},
+	}, {corner(PILL), stroke("Stroke", 1, 0.35)})
 	local fill = create("Frame", {
 		Parent = track,
 		Size = UDim2.fromScale(0, 1),
@@ -2960,15 +2981,19 @@ function Elements:Slider(o)
 	}, {corner(PILL)})
 	local fillGrad = create("UIGradient", {Parent = fill})
 	onTheme(function()
-		fillGrad.Color = ColorSequence.new(T.Accent:Lerp(BLACK, 0.12), T.Accent:Lerp(WHITE, 0.25))
+		fillGrad.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, T.Accent:Lerp(rgb(56, 189, 248), 0.24)),
+			ColorSequenceKeypoint.new(0.5, T.Accent),
+			ColorSequenceKeypoint.new(1, T.Accent:Lerp(WHITE, 0.28)),
+		})
 	end)
 	local knob = create("Frame", {
 		Parent = fill,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(1, 0.5),
-		Size = UDim2.fromOffset(12, 12),
+		Size = UDim2.fromOffset(13, 13),
 		BackgroundColor3 = WHITE,
-	}, {corner(PILL), stroke("Accent", 2, 0.2)})
+	}, {corner(PILL), stroke("Accent", 2, 0.1)})
 	local area = create("TextButton", {
 		Parent = row,
 		BackgroundTransparency = 1,
@@ -3086,9 +3111,11 @@ function Elements:Slider(o)
 	box.Focused:Connect(function()
 		box.Text = tostring(obj.Value)
 		tween(box, {BackgroundTransparency = 0, TextColor3 = T.Text}, 0.14)
+		tween(boxStroke, {Color = T.Accent, Transparency = 0.1}, 0.14)
 	end)
 	box.FocusLost:Connect(function()
-		tween(box, {BackgroundTransparency = 1, TextColor3 = T.Muted}, 0.14)
+		tween(box, {BackgroundTransparency = 0.35, TextColor3 = T.Text}, 0.14)
+		tween(boxStroke, {Color = T.Stroke, Transparency = 0.45}, 0.14)
 		local n = tonumber(box.Text:match("-?%d+%.?%d*"))
 		if n and not obj.Disabled then
 			set(n)
@@ -3351,12 +3378,14 @@ function Elements:Dropdown(o)
 
 	field.MouseEnter:Connect(function()
 		if not popupOpenFor(field) then
-			apply(ring, {Color = T.Muted}, true, 0.14, "Hover Effects")
+			apply(ring, {Color = T.Stroke:Lerp(T.Accent, 0.5)}, true, 0.14, "Hover Effects")
+			apply(chevron, {ImageColor3 = T.Text}, true, 0.14, "Hover Effects")
 		end
 	end)
 	field.MouseLeave:Connect(function()
 		if not popupOpenFor(field) then
 			apply(ring, {Color = T.Stroke}, true, 0.14, "Hover Effects")
+			apply(chevron, {ImageColor3 = T.Muted}, true, 0.14, "Hover Effects")
 		end
 	end)
 	field.Activated:Connect(function()
@@ -3437,6 +3466,16 @@ function Elements:Input(o)
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Theme = {BackgroundColor3 = "Raised", TextColor3 = "Text", PlaceholderColor3 = "Muted"},
 	}, {corner(8), ring, pad(0, 10)}), "M")
+	box.MouseEnter:Connect(function()
+		if not box:IsFocused() then
+			apply(ring, {Color = T.Stroke:Lerp(T.Accent, 0.5)}, true, 0.14, "Hover Effects")
+		end
+	end)
+	box.MouseLeave:Connect(function()
+		if not box:IsFocused() then
+			apply(ring, {Color = T.Stroke}, true, 0.14, "Hover Effects")
+		end
+	end)
 	box.Focused:Connect(function()
 		tween(ring, {Color = T.Accent}, 0.18)
 	end)
